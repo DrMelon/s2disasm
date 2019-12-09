@@ -33483,11 +33483,13 @@ Obj01_MdNormal_Checks:
 ; ---------------------------------------------------------------------------
 ; loc_1A2B8:
 Obj01_MdNormal:
+	jsr		Obj01_ChkRoll
 	bsr.w	Sonic_CheckSpindash
 	bsr.w	Sonic_Jump
 	bsr.w	Sonic_SlopeResist
-	bsr.w	Sonic_Move
+	;bsr.w	Sonic_Move ;; we can't run normally
 	bsr.w	Sonic_Roll
+	jsr		Obj01_ChkRoll
 	bsr.w	Sonic_LevelBound
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
@@ -33587,7 +33589,7 @@ Obj01_NotRight:
 	tst.w	inertia(a0)	; is Sonic moving?
 	bne.w	Obj01_ResetScr	; if yes, branch
 	bclr	#5,status(a0)
-	move.b	#AniIDSonAni_Wait,anim(a0)	; use "standing" animation
+	;move.b	#AniIDSonAni_Wait,anim(a0)	; use "standing" animation
 	btst	#3,status(a0)
 	beq.w	Sonic_Balance
 	moveq	#0,d0
@@ -34038,12 +34040,12 @@ Sonic_CheckRollStop:
 	tst.w	inertia(a0)
 	bne.s	Obj01_Roll_ResetScr
 	tst.b	pinball_mode(a0) ; note: the spindash flag has a different meaning when Sonic's already rolling -- it's used to mean he's not allowed to stop rolling
-	bne.s	Sonic_KeepRolling
-	bclr	#2,status(a0)
-	move.b	#$13,y_radius(a0)
-	move.b	#9,x_radius(a0)
-	move.b	#AniIDSonAni_Wait,anim(a0)
-	subq.w	#5,y_pos(a0)
+	bne.s	Sonic_KeepRolling 
+	;bclr	#2,status(a0) ; KEEP ON ROLLING FOREVER, HEDGEHOG, YOU HAVE MADE YOUR CHOICES
+	;move.b	#$13,y_radius(a0)
+	;move.b	#9,x_radius(a0)
+	;move.b	#AniIDSonAni_Wait,anim(a0)
+	;subq.w	#5,y_pos(a0)
 	bra.s	Obj01_Roll_ResetScr
 
 ; ---------------------------------------------------------------------------
@@ -34145,7 +34147,7 @@ Sonic_ChgJumpDir:
 	move.w	(Sonic_acceleration).w,d5
 	asl.w	#1,d5
 	btst	#4,status(a0)		; did Sonic jump from rolling?
-	bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
+	;bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
 	move.w	x_vel(a0),d0
 	btst	#button_left,(Ctrl_1_Held_Logical).w
 	beq.s	+	; if not holding left, branch
@@ -34301,8 +34303,8 @@ Obj01_DoRoll:
 	move.w	#SndID_Roll,d0
 	jsr	(PlaySound).l	; play rolling sound
 	tst.w	inertia(a0)
-	bne.s	return_1AA36
-	move.w	#$200,inertia(a0)
+	;bne.s	return_1AA36
+	;move.w	#$200,inertia(a0) ; no inertia please
 
 return_1AA36:
 	rts
@@ -34345,6 +34347,22 @@ Sonic_Jump:
 	muls.w	d2,d0
 	asr.l	#8,d0
 	add.w	d0,y_vel(a0)	; make Sonic jump (in Y)
+
+	;; test to see if pressing left or right when jumping
+	;; todo: make sure that you are able to press left intentionally and have a neutral jump with no input perhaps
+	btst	#button_right,(Ctrl_1_Held_Logical).w
+	bne.s	MyThingRight
+	btst	#button_left,(Ctrl_1_Held_Logical).w
+	bne.s   MyThingLeft
+	jmp DoneMyThing
+MyThingLeft:
+	add.w	d0,x_vel(a0)    ; make Sonic jump LEFTWAYS (in X, fixed amount, slope not worried about)
+	jmp     DoneMyThing
+MyThingRight:
+	muls.w  #$FFFF, d0 ; negate this number?
+	add.w   d0,x_vel(a0) ; make Sonic jump RIGHTWAYS
+
+DoneMyThing:
 	bset	#1,status(a0)
 	bclr	#5,status(a0)
 	addq.l	#4,sp
@@ -34361,6 +34379,7 @@ Sonic_Jump:
 	move.b	#AniIDSonAni_Roll,anim(a0)	; use "jumping" animation
 	bset	#2,status(a0)
 	addq.w	#5,y_pos(a0)
+
 
 return_1AAE6:
 	rts
@@ -37213,8 +37232,8 @@ Obj02_DoRoll:
 	move.w	#SndID_Roll,d0
 	jsr	(PlaySound).l	; play rolling sound
 	tst.w	inertia(a0)
-	bne.s	return_1C61C
-	move.w	#$200,inertia(a0)
+	;bne.s	return_1C61C
+	;move.w	#$200,inertia(a0) ;no inertia please
 
 return_1C61C:
 	rts
