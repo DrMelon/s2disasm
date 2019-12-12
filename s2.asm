@@ -34146,8 +34146,8 @@ Sonic_ChgJumpDir:
 	move.w	(Sonic_top_speed).w,d6
 	move.w	(Sonic_acceleration).w,d5
 	asl.w	#1,d5
-	btst	#4,status(a0)		; did Sonic jump from rolling?
-	;bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
+	btst	#2,status(a0)		; did Sonic jump from rolling?
+	bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
 	move.w	x_vel(a0),d0
 	btst	#button_left,(Ctrl_1_Held_Logical).w
 	beq.s	+	; if not holding left, branch
@@ -34168,7 +34168,7 @@ Sonic_ChgJumpDir:
 	cmp.w	d6,d0	; compare new speed with top speed
 	blt.s	+	; if new speed is less than the maximum, branch
 	move.w	d6,d0	; limit speed in air going right, even if Sonic was already going faster (speed limit/cap)
-; Obj01_JumpMove:
+ Obj01_JumpMove:
 +	move.w	d0,x_vel(a0)
 
 ; loc_1A932: Obj01_ResetScr2:
@@ -34266,21 +34266,21 @@ Sonic_Boundary_Sides:
 
 ; loc_1A9D2:
 Sonic_Roll:
-    if status_sec_isSliding = 7
-	tst.b	status_secondary(a0)
-	bmi.s	Obj01_NoRoll
-    else
-	btst	#status_sec_isSliding,status_secondary(a0)
-	bne.s	Obj01_NoRoll
-    endif
-	mvabs.w	inertia(a0),d0
-	cmpi.w	#$80,d0		; is Sonic moving at $80 speed or faster?
-	blo.s	Obj01_NoRoll	; if not, branch
-	move.b	(Ctrl_1_Held_Logical).w,d0
-	andi.b	#button_left_mask|button_right_mask,d0 ; is left/right being pressed?
-	bne.s	Obj01_NoRoll	; if yes, branch
-	btst	#button_down,(Ctrl_1_Held_Logical).w ; is down being pressed?
-	bne.s	Obj01_ChkRoll			; if yes, branch
+    ;if status_sec_isSliding = 7
+	;tst.b	status_secondary(a0)
+	;bmi.s	Obj01_NoRoll
+    ;else
+	;btst	#status_sec_isSliding,status_secondary(a0)
+	;bne.s	Obj01_NoRoll
+    ;endif
+	;mvabs.w	inertia(a0),d0
+	;cmpi.w	#$80,d0		; is Sonic moving at $80 speed or faster?
+	;blo.s	Obj01_NoRoll	; if not, branch
+	;move.b	(Ctrl_1_Held_Logical).w,d0
+	;andi.b	#button_left_mask|button_right_mask,d0 ; is left/right being pressed?
+	;bne.s	Obj01_NoRoll	; if yes, branch
+	;btst	#button_down,(Ctrl_1_Held_Logical).w ; is down being pressed?
+	jmp	Obj01_ChkRoll			; if yes, branch
 ; return_1A9F8:
 Obj01_NoRoll:
 	rts
@@ -34351,18 +34351,17 @@ Sonic_Jump:
 	;; test to see if pressing left or right when jumping
 	;; todo: make sure that you are able to press left intentionally and have a neutral jump with no input perhaps
 	btst	#button_right,(Ctrl_1_Held_Logical).w
-	bne.s	MyThingRight
+	bne.s	GolfRight
 	btst	#button_left,(Ctrl_1_Held_Logical).w
-	bne.s   MyThingLeft
-	jmp DoneMyThing
-MyThingLeft:
+	bne.s   GolfLeft
+	jmp DoneGolfHit
+GolfLeft:
 	add.w	d0,x_vel(a0)    ; make Sonic jump LEFTWAYS (in X, fixed amount, slope not worried about)
-	jmp     DoneMyThing
-MyThingRight:
+	jmp     DoneGolfHit
+GolfRight:
 	muls.w  #$FFFF, d0 ; negate this number?
 	add.w   d0,x_vel(a0) ; make Sonic jump RIGHTWAYS
-
-DoneMyThing:
+DoneGolfHit:
 	bset	#1,status(a0)
 	bclr	#5,status(a0)
 	addq.l	#4,sp
