@@ -34134,6 +34134,24 @@ Sonic_BrakeRollingLeft:
 	rts
 ; End of subroutine Sonic_RollRight
 
+; -----------------
+; Subroutine for managing golf-input state.
+; Here's how I think this is gonna work:
+; 1. Check sonic status stuff for something that we won't use in golf hack, like spindash status, to determine whether or not we're in pre-golf-strike mode.
+; 2. Use sub-state to track how far through a golf swing we are, to figure out what we're displaying and what swing strength variable we need to save into 
+; 3. At final state, swing that golf club and send the hedgehog hurtling through the air. 
+;
+; Basic logic of golf: 
+; 1. At rest, pressing a controller button will move into strike mode. 
+; 2. X-axis meter display, and will move a marker left and right, pressing again will freeze it there.
+; 3. Once X-axis set, Y-axis appears (where bottom of the axis is 0-angle, and top is 90 degrees), does the same thing.
+; 4. Once X and Y axis are set, play a thwack sound, and launch our spherical friend into the air according to the X and Y forces picked.
+; -----------------
+Sonic_GolfMeter:
+	
+
+
+	rts
 
 ; ---------------------------------------------------------------------------
 ; Subroutine for moving Sonic left or right when he's in the air
