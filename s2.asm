@@ -21748,7 +21748,7 @@ sub_109DC:
 	btst	#3,status(a1)
 	beq.s	+
 	bclr	#3,status(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	move.b	#AniIDSonAni_Run,next_anim(a1)
 +
 	rts
@@ -21863,7 +21863,7 @@ sub_10B36:
 	btst	#3,status(a1)
 	beq.s	+	; rts
 	bclr	#3,status(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	move.b	#AniIDSonAni_Run,next_anim(a1)
 +
 	rts
@@ -23876,7 +23876,7 @@ ChkPlayer_1up:
 super_shoes:
 	addq.w	#1,(a2)
 	bset	#status_sec_hasSpeedShoes,status_secondary(a1)	; give super sneakers status
-	move.w	#$4B0,speedshoes_time(a1)
+	;move.w	#$4B0,speedshoes_time(a1)
 	cmpa.w	#MainCharacter,a1	; did the main character break the monitor?
 	bne.s	super_shoes_Tails	; if not, branch
 	cmpi.w	#2,(Player_mode).w	; is player using Tails?
@@ -23924,7 +23924,7 @@ invincible_monitor:
 	tst.b	(Super_Sonic_flag).w	; is Sonic super?
 	bne.s	+++	; rts		; if yes, branch
 	bset	#status_sec_isInvincible,status_secondary(a1)	; give invincibility status
-	move.w	#20*60,invincibility_time(a1) ; 20 seconds
+	;move.w	#20*60,invincibility_time(a1) ; 20 seconds
 	tst.b	(Current_Boss_ID).w	; don't change music during boss battles
 	bne.s	+
 	cmpi.b	#$C,air_left(a1)	; or when drowning
@@ -27318,8 +27318,8 @@ Obj3C_Main:
 	lea	(Obj3C_FragmentSpeeds_RightToLeft).l,a4
 +
 	move.w	x_vel(a1),inertia(a1)
-	bclr	#5,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a0)
+	;bclr	#5,status(a1)
 	bsr.s	BreakObjectToPieces
 ; loc_15E02:
 Obj3C_Fragment:
@@ -30194,7 +30194,7 @@ loc_177F2:
 loc_177FA:
 	bset	#1,status(a0)
 	bclr	#4,status(a0)
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	clr.b	jumping(a0)
 	move.w	#SndID_LargeBumper,d0
 	jmp	(PlaySound).l
@@ -31289,7 +31289,7 @@ loc_18B98:
 loc_18BAA:
 	bclr	#p1_pushing_bit,status(a0)
 	bclr	#p2_pushing_bit,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	move.w	#SndID_Spring,d0
 	jmp	(PlaySound).l
 ; ===========================================================================
@@ -32636,7 +32636,7 @@ loc_19ADC:
 	move.l	d6,d4
 	addq.b	#pushing_bit_delta,d4
 	bclr	d4,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 
 loc_19AEA:
 	moveq	#0,d4
@@ -33312,10 +33312,10 @@ Obj01_Display:
 Obj01_ChkInvin:		; Checks if invincibility has expired and disables it if it has.
 	btst	#status_sec_isInvincible,status_secondary(a0)
 	beq.s	Obj01_ChkShoes
-	tst.w	invincibility_time(a0)
-	beq.s	Obj01_ChkShoes	; If there wasn't any time left, that means we're in Super Sonic mode.
-	subq.w	#1,invincibility_time(a0)
-	bne.s	Obj01_ChkShoes
+	;tst.w	invincibility_time(a0)
+	;beq.s	Obj01_ChkShoes	; If there wasn't any time left, that means we're in Super Sonic mode.
+	;subq.w	#1,invincibility_time(a0)
+	;bne.s	Obj01_ChkShoes
 	tst.b	(Current_Boss_ID).w	; Don't change music if in a boss fight
 	bne.s	Obj01_RmvInvin
 	cmpi.b	#$C,air_left(a0)	; Don't change music if drowning
@@ -33329,10 +33329,10 @@ Obj01_RmvInvin:
 Obj01_ChkShoes:		; Checks if Speed Shoes have expired and disables them if they have.
 	btst	#status_sec_hasSpeedShoes,status_secondary(a0)
 	beq.s	Obj01_ExitChk
-	tst.w	speedshoes_time(a0)
-	beq.s	Obj01_ExitChk
-	subq.w	#1,speedshoes_time(a0)
-	bne.s	Obj01_ExitChk
+	;tst.w	speedshoes_time(a0)
+	;beq.s	Obj01_ExitChk
+	;subq.w	#1,speedshoes_time(a0)
+	;bne.s	Obj01_ExitChk
 	move.w	#$600,(Sonic_top_speed).w
 	move.w	#$C,(Sonic_acceleration).w
 	move.w	#$80,(Sonic_deceleration).w
@@ -33484,8 +33484,9 @@ Obj01_MdNormal_Checks:
 ; loc_1A2B8:
 Obj01_MdNormal:
 	jsr		Obj01_ChkRoll
-	bsr.w	Sonic_CheckSpindash
-	bsr.w	Sonic_Jump
+	;bsr.w	Sonic_CheckSpindash
+	;bsr.w	Sonic_GolfMeter
+	;bsr.w	Sonic_Jump
 	bsr.w	Sonic_SlopeResist
 	;bsr.w	Sonic_Move ;; we can't run normally
 	bsr.w	Sonic_Roll
@@ -33520,10 +33521,12 @@ Obj01_MdAir:
 ; Called if Sonic is in a ball, but not airborne (thus, probably rolling)
 ; loc_1A30A:
 Obj01_MdRoll:
-	tst.b	pinball_mode(a0)
-	bne.s	+
-	bsr.w	Sonic_Jump
-+
+	
+	;tst.b	pinball_mode(a0)
+	;bne.s	+
+	;bsr.w	Sonic_Jump
+;+
+	bsr.w	Sonic_GolfMeter
 	bsr.w	Sonic_RollRepel
 	bsr.w	Sonic_RollSpeed
 	bsr.w	Sonic_LevelBound
@@ -33588,7 +33591,7 @@ Obj01_NotRight:
 	bne.w	Obj01_ResetScr	; if yes, branch
 	tst.w	inertia(a0)	; is Sonic moving?
 	bne.w	Obj01_ResetScr	; if yes, branch
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	;move.b	#AniIDSonAni_Wait,anim(a0)	; use "standing" animation
 	btst	#3,status(a0)
 	beq.w	Sonic_Balance
@@ -33856,7 +33859,7 @@ Obj01_CheckWallsOnGround:
 	cmpi.b	#$80,d0
 	beq.s	loc_1A6A2
 	add.w	d1,x_vel(a0)
-	bset	#5,status(a0)
+	;bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -33866,7 +33869,7 @@ loc_1A6A2:
 ; ---------------------------------------------------------------------------
 loc_1A6A8:
 	sub.w	d1,x_vel(a0)
-	bset	#5,status(a0)
+	;bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -33888,7 +33891,7 @@ Sonic_MoveLeft:
 +
 	bset	#0,status(a0)
 	bne.s	+
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 +
 	sub.w	d5,d0	; add acceleration to the left
@@ -33940,7 +33943,7 @@ Sonic_MoveRight:
 	bmi.s	Sonic_TurnRight	; if Sonic is already moving to the left, branch
 	bclr	#0,status(a0)
 	beq.s	+
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 +
 	add.w	d5,d0	; add acceleration to the right
@@ -34146,12 +34149,72 @@ Sonic_BrakeRollingLeft:
 ; 2. X-axis meter display, and will move a marker left and right, pressing again will freeze it there.
 ; 3. Once X-axis set, Y-axis appears (where bottom of the axis is 0-angle, and top is 90 degrees), does the same thing.
 ; 4. Once X and Y axis are set, play a thwack sound, and launch our spherical friend into the air according to the X and Y forces picked.
+; 
+;
+;	Status Flags for Checking:
+;	Sonic status, bit 5: pushing is now strikemode or not
+;
+;
 ; -----------------
 Sonic_GolfMeter:
+	move.b 	(Ctrl_1_Press_Logical).w,d0
+	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button press
+	bne.s	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
+GolfButtonNotPressed:
+	tst.b	spindash_flag(a0) ; are we in x or y strike mode
+	bne.s	+ ; if we are in X mode
+
+	jmp 	SkipGolf	
++
+
+	jmp		SkipGolf
+
 	
 
+GolfButtonPressed:
+	move.w	inertia(a0),d0; cannot enter golf mode while still moving
+	cmpi.w  #$0,d0
+	bne.s	GolfButtonNotPressed
+	btst	#5,status(a0) ;are we in strike mode?
+	beq.s	+
+	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
+	move.w  #0,golf_x_axis(a0);
+	move.w  #0,golf_y_axis(a0);
+	bset	#5,status(a0) ;in strike mode now
+	move.w	#SndID_Ring,d0
+	jsr	(PlaySound).l	; play ring sound
+	jmp 	GolfButtonNotPressed
++
+	;in strike status already, check if it's in X or Y mode, and advance to next step if so
+	tst.b	spindash_flag(a0)
+	beq.s	GolfSwing
+	move.b	#1,spindash_flag(a0)
+	jmp 	GolfButtonNotPressed
 
+
+
+
+SkipGolf:
 	rts
+
+GolfSwing:
+	bclr	#5,status(a0) ; strike mode cleared! 
+
+	; set x veloc, set y veloc, set rolling/jumping
+	move.w	#$400,d0
+	muls.w  #$FFFF, d0
+	;move.w	d0,y_vel(a0)
+	;move.w	#$400,x_vel(a0)
+	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
+	move.w  #0,golf_x_axis(a0);
+	move.w  #0,golf_y_axis(a0);
+	; increment the number of swings taken on this act
+
+	; play sound
+	move.w	#SndID_LaserBurst,d0 ; WHEN THIS PLAYS, STATE SHOULD BE RESET - WHY IS IT NOT?
+	jsr	(PlaySound).l	; play spindash rev sound
+
+	jmp		GolfButtonNotPressed
 
 ; ---------------------------------------------------------------------------
 ; Subroutine for moving Sonic left or right when he's in the air
@@ -34361,32 +34424,32 @@ Sonic_Jump:
 	jsr	(CalcSine).l
 	muls.w	d2,d1
 	asr.l	#8,d1
-	add.w	d1,x_vel(a0)	; make Sonic jump (in X... this adds nothing on level ground)
+	;add.w	d1,x_vel(a0)	; make Sonic jump (in X... this adds nothing on level ground)
 	muls.w	d2,d0
 	asr.l	#8,d0
-	add.w	d0,y_vel(a0)	; make Sonic jump (in Y)
+	;add.w	d0,y_vel(a0)	; make Sonic jump (in Y)
 
 	;; test to see if pressing left or right when jumping
 	;; todo: make sure that you are able to press left intentionally and have a neutral jump with no input perhaps
 	btst	#button_right,(Ctrl_1_Held_Logical).w
-	bne.s	GolfRight
+	bne.s	GolfRightOLD
 	btst	#button_left,(Ctrl_1_Held_Logical).w
-	bne.s   GolfLeft
-	jmp DoneGolfHit
-GolfLeft:
-	add.w	d0,x_vel(a0)    ; make Sonic jump LEFTWAYS (in X, fixed amount, slope not worried about)
-	jmp     DoneGolfHit
-GolfRight:
+	bne.s   GolfLeftOLD
+	jmp DoneGolfHitOLD
+GolfLeftOLD:
+	;add.w	d0,x_vel(a0)    ; make Sonic jump LEFTWAYS (in X, fixed amount, slope not worried about)
+	jmp     DoneGolfHitOLD
+GolfRightOLD:
 	muls.w  #$FFFF, d0 ; negate this number?
-	add.w   d0,x_vel(a0) ; make Sonic jump RIGHTWAYS
-DoneGolfHit:
+	;add.w   d0,x_vel(a0) ; make Sonic jump RIGHTWAYS
+DoneGolfHitOLD:
 	bset	#1,status(a0)
-	bclr	#5,status(a0)
+	;;bclr	#5,status(a0)
 	addq.l	#4,sp
 	move.b	#1,jumping(a0)
 	clr.b	stick_to_convex(a0)
-	move.w	#SndID_Jump,d0
-	jsr	(PlaySound).l	; play jumping sound
+	;move.w	#SndID_Jump,d0
+	;jsr	(PlaySound).l	; play jumping sound
 	move.b	#$13,y_radius(a0)
 	move.b	#9,x_radius(a0)
 	btst	#2,status(a0)
@@ -34479,7 +34542,7 @@ Sonic_CheckGoSuper:
 	move.w	#$A00,(Sonic_top_speed).w
 	move.w	#$30,(Sonic_acceleration).w
 	move.w	#$100,(Sonic_deceleration).w
-	move.w	#0,invincibility_time(a0)
+	;move.w	#0,invincibility_time(a0)
 	bset	#status_sec_isInvincible,status_secondary(a0)	; make Sonic invincible
 	move.w	#SndID_SuperTransform,d0
 	jsr	(PlaySound).l	; Play transformation sound effect.
@@ -34527,7 +34590,7 @@ Sonic_RevertToNormal:
 	move.w	#$28,(Palette_frame).w
 	move.b	#0,(Super_Sonic_flag).w
 	move.b	#1,next_anim(a0)	; Change animation back to normal ?
-	move.w	#1,invincibility_time(a0)	; Remove invincibility
+	;move.w	#1,invincibility_time(a0)	; Remove invincibility
 	move.w	#$600,(Sonic_top_speed).w
 	move.w	#$C,(Sonic_acceleration).w
 	move.w	#$80,(Sonic_deceleration).w
@@ -34550,7 +34613,7 @@ return_1AC3C:
 ; loc_1AC3E:
 Sonic_CheckSpindash:
 	tst.b	spindash_flag(a0)
-	bne.s	Sonic_UpdateSpindash
+	;bne.s	Sonic_UpdateSpindash
 	cmpi.b	#AniIDSonAni_Duck,anim(a0)
 	bne.s	return_1AC8C
 	move.b	(Ctrl_1_Press_Logical).w,d0
@@ -35089,7 +35152,7 @@ Sonic_ResetOnFloor_Part2:
 ; loc_1B0DA:
 Sonic_ResetOnFloor_Part3:
 	bclr	#1,status(a0)
-	bclr	#5,status(a0)
+	;;bclr	#5,status(a0)
 	bclr	#4,status(a0)
 	move.b	#0,jumping(a0)
 	move.w	#0,(Chain_Bonus_counter).w
@@ -35316,7 +35379,7 @@ Sonic_Animate:
 	move.b	d0,next_anim(a0)	; set to next animation
 	move.b	#0,anim_frame(a0)	; reset animation frame
 	move.b	#0,anim_frame_duration(a0)	; reset frame duration
-	bclr	#5,status(a0)
+	;;bclr	#5,status(a0)
 ; loc_1B384:
 SAnim_Do:
 	add.w	d0,d0
@@ -35397,8 +35460,8 @@ SAnim_WalkRun:
 	andi.b	#$FC,render_flags(a0)
 	eor.b	d1,d2
 	or.b	d2,render_flags(a0)
-	btst	#5,status(a0)
-	bne.w	SAnim_Push
+	;btst	#5,status(a0)
+	;bne.w	SAnim_Push
 	lsr.b	#4,d0		; divide angle by 16
 	andi.b	#6,d0		; angle must be 0, 2, 4 or 6
 	mvabs.w	inertia(a0),d2	; get Sonic's "speed" for animation purposes
@@ -35963,10 +36026,10 @@ Obj02_Display:
 Obj02_ChkInvinc:	; Checks if invincibility has expired and disables it if it has.
 	btst	#status_sec_isInvincible,status_secondary(a0)
 	beq.s	Obj02_ChkShoes
-	tst.w	invincibility_time(a0)
-	beq.s	Obj02_ChkShoes
-	subq.w	#1,invincibility_time(a0)
-	bne.s	Obj02_ChkShoes
+	;tst.w	invincibility_time(a0)
+	;beq.s	Obj02_ChkShoes
+	;subq.w	#1,invincibility_time(a0)
+	;bne.s	Obj02_ChkShoes
 	tst.b	(Current_Boss_ID).w	; Don't change music if in a boss fight
 	bne.s	Obj02_RmvInvin
 	cmpi.b	#$C,air_left(a0)	; Don't change music if drowning
@@ -35980,10 +36043,10 @@ Obj02_RmvInvin:
 Obj02_ChkShoes:		; Checks if Speed Shoes have expired and disables them if they have.
 	btst	#status_sec_hasSpeedShoes,status_secondary(a0)
 	beq.s	Obj02_ExitChk
-	tst.w	speedshoes_time(a0)
-	beq.s	Obj02_ExitChk
-	subq.w	#1,speedshoes_time(a0)
-	bne.s	Obj02_ExitChk
+	;tst.w	speedshoes_time(a0)
+	;beq.s	Obj02_ExitChk
+	;subq.w	#1,speedshoes_time(a0)
+	;bne.s	Obj02_ExitChk
 	move.w	#$600,(Tails_top_speed).w
 	move.w	#$C,(Tails_acceleration).w
 	move.w	#$80,(Tails_deceleration).w
@@ -36636,7 +36699,7 @@ Obj02_NotRight:
 	bne.w	Obj02_ResetScr	; if yes, branch
 	tst.w	inertia(a0)	; is Tails moving?
 	bne.w	Obj02_ResetScr	; if yes, branch
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDTailsAni_Wait,anim(a0)	; use "standing" animation
 	btst	#3,status(a0)
 	beq.s	Tails_Balance
@@ -36800,7 +36863,7 @@ Obj02_CheckWallsOnGround:
 	cmpi.b	#$80,d0
 	beq.s	loc_1C286
 	add.w	d1,x_vel(a0)
-	bset	#5,status(a0)
+	;bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -36812,7 +36875,7 @@ loc_1C286:
 
 loc_1C28C:
 	sub.w	d1,x_vel(a0)
-	bset	#5,status(a0)
+	;bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -36834,7 +36897,7 @@ Tails_MoveLeft:
 +
 	bset	#0,status(a0)
 	bne.s	+
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDTailsAni_Run,next_anim(a0)
 +
 	sub.w	d5,d0	; add acceleration to the left
@@ -36886,7 +36949,7 @@ Tails_MoveRight:
 	bmi.s	Tails_TurnRight
 	bclr	#0,status(a0)
 	beq.s	+
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDTailsAni_Run,next_anim(a0)
 +
 	add.w	d5,d0	; add acceleration to the right
@@ -37290,7 +37353,7 @@ Tails_Jump:
 	asr.l	#8,d0
 	add.w	d0,y_vel(a0)	; make Tails jump (in Y)
 	bset	#1,status(a0)
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	addq.l	#4,sp
 	move.b	#1,jumping(a0)
 	clr.b	stick_to_convex(a0)
@@ -37879,7 +37942,7 @@ Tails_ResetOnFloor_Part2:
 ; loc_1CB80:
 Tails_ResetOnFloor_Part3:
 	bclr	#1,status(a0)
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	bclr	#4,status(a0)
 	move.b	#0,jumping(a0)
 	move.w	#0,(Chain_Bonus_counter).w
@@ -38095,7 +38158,7 @@ Tails_Animate_Part2:
 	move.b	d0,next_anim(a0)	; set to next animation
 	move.b	#0,anim_frame(a0)	; reset animation frame
 	move.b	#0,anim_frame_duration(a0)	; reset frame duration
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 ; loc_1CDEC:
 TAnim_Do:
 	add.w	d0,d0
@@ -39784,7 +39847,7 @@ loc_1E33C:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E336
 	bset	#1,status(a0)
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -39892,7 +39955,7 @@ loc_1E420:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E41A
 	bset	#1,status(a0)
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -39959,7 +40022,7 @@ loc_1E4CE:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E4C8
 	bset	#1,status(a0)
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -40026,7 +40089,7 @@ loc_1E57C:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E576
 	bset	#1,status(a0)
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -41804,7 +41867,7 @@ Obj44_BumpCharacter:
 	move.w	d0,y_vel(a1)
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.b	#1,anim(a0)
 	move.w	#SndID_Bumper,d0
@@ -42131,7 +42194,7 @@ loc_1FB0C:
 	move.b	#AniIDSonAni_Bubble,anim(a1)
 	move.w	#$23,move_lock(a1)
 	move.b	#0,jumping(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	bclr	#4,status(a1)
 	btst	#2,status(a1)
 	beq.w	loc_1FBB8
@@ -43531,11 +43594,11 @@ Obj84_MainX:
 	cmp.w	d3,d4
 	bhs.s	return_21284
 	btst	#0,render_flags(a0)
-	bne.s	+
-	move.b	#1,pinball_mode(a1) ; enable must-roll "pinball mode"
-	bra.s	loc_212C4
+;	bne.s	+
+;	move.b	#1,pinball_mode(a1) ; enable must-roll "pinball mode"
+;	bra.s	loc_212C4
 ; ---------------------------------------------------------------------------
-+	move.b	#0,pinball_mode(a1) ; disable pinball mode
+;+	move.b	#0,pinball_mode(a1) ; disable pinball mode
 
 return_21284:
 	rts
@@ -43557,10 +43620,10 @@ Obj84_MainX_Alt:
 	bhs.s	return_21284
 	btst	#0,render_flags(a0)
 	beq.s	+
-	move.b	#1,pinball_mode(a1)
-	bra.s	loc_212C4
+;	move.b	#1,pinball_mode(a1)
+;	bra.s	loc_212C4
 ; ---------------------------------------------------------------------------
-+	move.b	#0,pinball_mode(a1)
+;+	move.b	#0,pinball_mode(a1)
 	rts
 ; ===========================================================================
 
@@ -43606,11 +43669,11 @@ Obj84_MainY:
 	cmp.w	d3,d4
 	bhs.s	return_21350
 	btst	#0,render_flags(a0)
-	bne.s	+
-	move.b	#1,pinball_mode(a1)
-	bra.w	loc_212C4
+;	bne.s	+
+;	move.b	#1,pinball_mode(a1)
+;	bra.w	loc_212C4
 ; ---------------------------------------------------------------------------
-+	move.b	#0,pinball_mode(a1)
+;+	move.b	#0,pinball_mode(a1)
 
 return_21350:
 	rts
@@ -43631,11 +43694,11 @@ Obj84_MainY_Alt:
 	cmp.w	d3,d4
 	bhs.s	return_21350
 	btst	#0,render_flags(a0)
-	beq.s	+
-	move.b	#1,pinball_mode(a1)
-	bra.w	loc_212C4
+;	beq.s	+
+;	move.b	#1,pinball_mode(a1)
+;	bra.w	loc_212C4
 ; ---------------------------------------------------------------------------
-+	move.b	#0,pinball_mode(a1)
+;+	move.b	#0,pinball_mode(a1)
 	rts
 
 
@@ -45018,9 +45081,9 @@ Obj1B_GiveBoost:
 +
 	move.w	#$F,move_lock(a1)	; don't let him turn around for a few frames
 	move.w	x_vel(a1),inertia(a1)	; update his inertia value
-	bclr	#5,status(a0)
+	;bclr	#5,status(a0)
 	bclr	#6,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 ; loc_223D8:
 Obj1B_GiveBoost_Done:
 	move.w	#SndID_Spring,d0 ; spring boing sound
@@ -45351,8 +45414,8 @@ loc_22688:
 	move.w	#$800,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	bclr	#5,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a0)
+	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	move.b	#0,jumping(a1)
 	bclr	#high_priority_bit,art_tile(a1)
@@ -46621,7 +46684,7 @@ loc_23C26:
 	move.w	#0,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	bclr	#high_priority_bit,art_tile(a1)
 	move.l	#-$96800,objoff_32(a0)
 	addq.b	#2,routine_secondary(a0)
@@ -46649,13 +46712,13 @@ loc_23CA0:
 	move.w	#0,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	bclr	#high_priority_bit,art_tile(a1)
 	move.b	#1,obj_control(a2)
 	move.w	#0,inertia(a2)
 	move.w	#0,x_vel(a2)
 	move.w	#0,y_vel(a2)
-	bclr	#5,status(a2)
+	;bclr	#5,status(a2)
 	bclr	#high_priority_bit,art_tile(a2)
 	move.l	#-$96800,objoff_32(a0)
 	addq.b	#2,routine_secondary(a0)
@@ -47414,7 +47477,7 @@ loc_244A8:
 	move.b	#$F,lrb_solid_bit(a1)
 
 loc_244BA:
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	move.b	#AniIDSonAni_Run,next_anim(a1)
 	move.w	#SndID_Spring,d0 ; play spring bounce sound
 	jmp	(PlaySound).l
@@ -47972,8 +48035,8 @@ loc_24FF0:
 	move.w	#0,y_vel(a1)
 
 loc_25002:
-	bclr	#5,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a0)
+	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	bset	#3,status(a1)
 	move.w	a0,d0
@@ -48215,8 +48278,8 @@ loc_252F0:
 	move.w	#$1000,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	bclr	#5,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a0)
+	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	bset	#3,status(a1)
 	move.b	objoff_3F(a0),mapping_frame(a0)
@@ -50306,7 +50369,7 @@ loc_270DC:
 +
 	bclr	#p1_pushing_bit,status(a0)
 	bclr	#p2_pushing_bit,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	move.w	#SndID_Spring,d0
 	jmp	(PlaySound).l
 ; ===========================================================================
@@ -50411,8 +50474,8 @@ loc_271D0:
 	move.w	#$800,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	bclr	#5,status(a0)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a0)
+	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
@@ -57208,7 +57271,7 @@ ObjD7_BounceUp:
 ObjD7_BounceEnd:
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.w	#SndID_Bumper,d0
 	jmp	(PlaySound).l
@@ -57462,7 +57525,7 @@ loc_2C7EC:
 loc_2C806:
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.w	#SndID_BonusBumper,d0
 	jsr	(PlaySound).l
@@ -78159,7 +78222,7 @@ BranchTo8_JmpTo45_DisplaySprite
 
 ObjC5_PlatformReleaserDestroyP: 	; P=Platforms
 	addq.b	#2,routine_secondary(a0)
-	bset	#5,status(a0)		; destroy platforms
+	;bset	#5,status(a0)		; destroy platforms
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
 
@@ -78538,7 +78601,7 @@ ObjC5_NoHitPointsLeft:	; when the boss is defeated this tells it what to do
 	clr.b	collision_flags(a0)
 	move.w	#$EF,objoff_30(a0)
 	move.b	#$1E,routine_secondary(a0)
-	bset	#5,status(a0)
+	;bset	#5,status(a0)
 	bclr	#6,status(a0)
 	rts
 ; ===========================================================================
@@ -78784,7 +78847,7 @@ ObjC6_State3_State2:
 ; loc_3D078:
 ObjC6_State3_State3:
 	lea	(MainCharacter).w,a1 ; a1=character
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	bra.w	JmpTo65_DeleteObject
 ; ===========================================================================
 
@@ -79009,7 +79072,7 @@ loc_3D3A4:
 	move.w	d0,y_vel(a1)
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.w	#SndID_Bumper,d0
 	jsr	(PlaySound).l
@@ -79462,7 +79525,7 @@ loc_3D89E:
 ; ---------------------------------------------------------------------------
 +
 	addq.b	#2,next_anim(a0)
-	bset	#5,status(a0)
+	;bset	#5,status(a0)
 	move.b	#$40,anim_frame_duration(a0)
 	rts
 ; ===========================================================================
@@ -79978,7 +80041,7 @@ loc_3DCEE:
 
 loc_3DD00:
 	movea.w	objoff_2C(a0),a1 ; a1=object
-	bclr	#5,status(a1)
+	;bclr	#5,status(a1)
 	bne.s	+
 	rts
 ; ---------------------------------------------------------------------------
