@@ -34169,7 +34169,7 @@ GolfButtonNotPressed:
 
 	jmp		SkipGolf
 
-	
+	;; DEBUGGING WITH BIZHAWK REVEALED BITFIELD NOT SET? `status` is at $B022. 
 
 GolfButtonPressed:
 	move.w	inertia(a0),d0; cannot enter golf mode while still moving
