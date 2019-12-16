@@ -34159,24 +34159,24 @@ Sonic_BrakeRollingLeft:
 Sonic_GolfMeter:
 	move.b 	(Ctrl_1_Press_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button press
-	bne.s	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
+	bne.w	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
 GolfButtonNotPressed:
 	tst.b	spindash_flag(a0) ; are we in x or y strike mode
-	bne.s	+ ; if we are in X mode
-
+	bne.s	+ ; branch if we are in Y mode
+	;xmode
 	jmp 	SkipGolf	
 +
-
+	;ymode
 	jmp		SkipGolf
 
-	;; DEBUGGING WITH BIZHAWK REVEALED BITFIELD NOT SET? `status` is at $B022. 
+	;; Note to self: was messing up blo/bhi and btst stuff.
 
 GolfButtonPressed:
 	move.w	inertia(a0),d0; cannot enter golf mode while still moving
-	cmpi.w  #$0,d0
-	bne.s	GolfButtonNotPressed
+	cmpi.w  #$0040,d0
+	bhi.s	GolfButtonNotPressed
 	btst	#5,status(a0) ;are we in strike mode?
-	beq.s	+
+	bne.w	+
 	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
 	move.w  #0,golf_x_axis(a0);
 	move.w  #0,golf_y_axis(a0);
@@ -34187,7 +34187,7 @@ GolfButtonPressed:
 +
 	;in strike status already, check if it's in X or Y mode, and advance to next step if so
 	tst.b	spindash_flag(a0)
-	beq.s	GolfSwing
+	bne.s	GolfSwing
 	move.b	#1,spindash_flag(a0)
 	jmp 	GolfButtonNotPressed
 
