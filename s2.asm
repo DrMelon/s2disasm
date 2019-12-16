@@ -34201,10 +34201,11 @@ GolfSwing:
 	bclr	#5,status(a0) ; strike mode cleared! 
 
 	; set x veloc, set y veloc, set rolling/jumping
-	move.w	#$400,d0
-	muls.w  #$FFFF, d0
-	;move.w	d0,y_vel(a0)
-	;move.w	#$400,x_vel(a0)
+	move.w	#-$400,d0
+	move.w	d0,y_vel(a0)
+	move.w	#$400,x_vel(a0)
+	addq.w	#5,y_pos(a0) ;pop jump into air
+	move.b	#1,jumping(a0)
 	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
 	move.w  #0,golf_x_axis(a0);
 	move.w  #0,golf_y_axis(a0);
