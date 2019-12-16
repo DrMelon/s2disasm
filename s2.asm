@@ -26887,7 +26887,7 @@ Off_TitleCardLetters:
 TitleCardLetters:
 
 TitleCardLetters_EHZ:
-	titleLetters	"EMERALD HILL"
+	titleLetters	"EMERALD HOLE"
 TitleCardLetters_MTZ:
 	titleLetters	"METROPOLIS"
 TitleCardLetters_HTZ:
@@ -33526,10 +33526,11 @@ Obj01_MdRoll:
 	;bne.s	+
 	;bsr.w	Sonic_Jump
 ;+
-	bsr.w	Sonic_GolfMeter
+	
 	bsr.w	Sonic_RollRepel
 	bsr.w	Sonic_RollSpeed
 	bsr.w	Sonic_LevelBound
+	bsr.w	Sonic_GolfMeter
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
 	bsr.w	Sonic_SlopeRepel
@@ -34040,8 +34041,8 @@ Sonic_ApplyRollSpeedLeft:
 
 ; loc_1A81E:
 Sonic_CheckRollStop:
-	tst.w	inertia(a0)
-	bne.s	Obj01_Roll_ResetScr
+	;tst.w	inertia(a0)
+	;bne.s	Obj01_Roll_ResetScr
 	;tst.b	pinball_mode(a0) ; note: the spindash flag has a different meaning when Sonic's already rolling -- it's used to mean he's not allowed to stop rolling
 	;bne.s	Sonic_KeepRolling 
 	;bclr	#2,status(a0) ; KEEP ON ROLLING FOREVER, HEDGEHOG, YOU HAVE MADE YOUR CHOICES
@@ -34049,7 +34050,8 @@ Sonic_CheckRollStop:
 	;move.b	#9,x_radius(a0)
 	;move.b	#AniIDSonAni_Wait,anim(a0)
 	;subq.w	#5,y_pos(a0)
-	bra.s	Obj01_Roll_ResetScr
+	;bra.s	Obj01_Roll_ResetScr
+	jmp		Obj01_Roll_ResetScr
 
 ; ---------------------------------------------------------------------------
 ; magically gives Sonic an extra push if he's going to stop rolling where it's not allowed
@@ -34164,9 +34166,20 @@ GolfButtonNotPressed:
 	tst.b	spindash_flag(a0) ; are we in x or y strike mode
 	bne.s	+ ; branch if we are in Y mode
 	;xmode
+	;put sin of acc in d0
+	move.b	(Timer_frame).w,d0
+	jsr		(CalcSine).l ; this sine doesn't work quite like i want - doesn't go -1-> 0-> 1 -> 0 -> -1, goes -1 -> 0 -> 1 -> -1, linear cycle, but works well enough
+	sub.w   #127, d0
+	muls.w  #8,d0
+	move.w	d0,golf_x_axis(a0)
+
 	jmp 	SkipGolf	
 +
 	;ymode
+	move.b	(Timer_frame).w,d0
+	jsr		(CalcSine).l
+	muls.w	#-8,d0
+	move.w	d0,golf_y_axis(a0)
 	jmp		SkipGolf
 
 	;; Note to self: was messing up blo/bhi and btst stuff.
@@ -34191,9 +34204,6 @@ GolfButtonPressed:
 	move.b	#1,spindash_flag(a0)
 	jmp 	GolfButtonNotPressed
 
-
-
-
 SkipGolf:
 	rts
 
@@ -34201,11 +34211,11 @@ GolfSwing:
 	bclr	#5,status(a0) ; strike mode cleared! 
 
 	; set x veloc, set y veloc, set rolling/jumping
-	move.w	#-$400,d0
-	move.w	d0,y_vel(a0)
-	move.w	#$400,x_vel(a0)
-	addq.w	#5,y_pos(a0) ;pop jump into air
-	move.b	#1,jumping(a0)
+	move.w	golf_y_axis(a0),y_vel(a0)
+	move.w	golf_x_axis(a0),x_vel(a0)
+	move.w	#$400,inertia(a0)
+	bset	#1,status(a0)
+	;move.b	#1,jumping(a0)
 	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
 	move.w  #0,golf_x_axis(a0);
 	move.w  #0,golf_y_axis(a0);
@@ -34482,32 +34492,33 @@ Sonic_RollJump:
 ; ===========================================================================
 ; loc_1AAF0:
 Sonic_JumpHeight:
-	tst.b	jumping(a0)	; is Sonic jumping?
-	beq.s	Sonic_UpVelCap	; if not, branch
-
-	move.w	#-$400,d1
-	btst	#6,status(a0)	; is Sonic underwater?
-	beq.s	+		; if not, branch
-	move.w	#-$200,d1
-+
-	cmp.w	y_vel(a0),d1	; is Sonic going up faster than d1?
-	ble.s	+		; if not, branch
-	move.b	(Ctrl_1_Held_Logical).w,d0
-	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; is a jump button pressed?
-	bne.s	+		; if yes, branch
-	move.w	d1,y_vel(a0)	; immediately reduce Sonic's upward speed to d1
-+
-	tst.b	y_vel(a0)		; is Sonic exactly at the height of his jump?
-	beq.s	Sonic_CheckGoSuper	; if yes, test for turning into Super Sonic
 	rts
+;	tst.b	jumping(a0)	; is Sonic jumping?
+;	beq.s	Sonic_UpVelCap	; if not, branch
+
+;	move.w	#-$400,d1
+;	btst	#6,status(a0)	; is Sonic underwater?
+;	beq.s	+		; if not, branch
+;	move.w	#-$200,d1
+;+
+;	cmp.w	y_vel(a0),d1	; is Sonic going up faster than d1?
+;	ble.s	+		; if not, branch
+;	move.b	(Ctrl_1_Held_Logical).w,d0
+;	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; is a jump button pressed?
+	;bne.s	+		; if yes, branch
+	;move.w	d1,y_vel(a0)	; immediately reduce Sonic's upward speed to d1
+;+
+;	tst.b	y_vel(a0)		; is Sonic exactly at the height of his jump?
+;	beq.s	Sonic_CheckGoSuper	; if yes, test for turning into Super Sonic
+;	rts
 ; ---------------------------------------------------------------------------
 ; loc_1AB22:
 Sonic_UpVelCap:
-	tst.b	pinball_mode(a0)	; is Sonic charging a spindash or in a rolling-only area?
-	bne.s	return_1AB36		; if yes, return
-	cmpi.w	#-$FC0,y_vel(a0)	; is Sonic moving up really fast?
-	bge.s	return_1AB36		; if not, return
-	move.w	#-$FC0,y_vel(a0)	; cap upward speed
+	;tst.b	pinball_mode(a0)	; is Sonic charging a spindash or in a rolling-only area?
+	;bne.s	return_1AB36		; if yes, return
+	;cmpi.w	#-$FC0,y_vel(a0)	; is Sonic moving up really fast?
+	;bge.s	return_1AB36		; if not, return
+	;move.w	#-$FC0,y_vel(a0)	; cap upward speed
 
 return_1AB36:
 	rts
