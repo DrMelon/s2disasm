@@ -34222,7 +34222,7 @@ GolfSwing:
 	; increment the number of swings taken on this act
 
 	; play sound
-	move.w	#SndID_LaserBurst,d0 ; WHEN THIS PLAYS, STATE SHOULD BE RESET - WHY IS IT NOT?
+	move.w	#SndID_Spring,d0 ;  maybe set noise based on strength of hit? monitor pop, thoomp, spring...
 	jsr	(PlaySound).l	; play spindash rev sound
 
 	jmp		GolfButtonNotPressed
