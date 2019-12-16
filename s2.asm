@@ -34042,8 +34042,8 @@ Sonic_ApplyRollSpeedLeft:
 Sonic_CheckRollStop:
 	tst.w	inertia(a0)
 	bne.s	Obj01_Roll_ResetScr
-	tst.b	pinball_mode(a0) ; note: the spindash flag has a different meaning when Sonic's already rolling -- it's used to mean he's not allowed to stop rolling
-	bne.s	Sonic_KeepRolling 
+	;tst.b	pinball_mode(a0) ; note: the spindash flag has a different meaning when Sonic's already rolling -- it's used to mean he's not allowed to stop rolling
+	;bne.s	Sonic_KeepRolling 
 	;bclr	#2,status(a0) ; KEEP ON ROLLING FOREVER, HEDGEHOG, YOU HAVE MADE YOUR CHOICES
 	;move.b	#$13,y_radius(a0)
 	;move.b	#9,x_radius(a0)
@@ -35132,9 +35132,9 @@ return_1B09E:
 
 ; loc_1B0A0:
 Sonic_ResetOnFloor:
-	tst.b	pinball_mode(a0)
-	bne.s	Sonic_ResetOnFloor_Part3
-	move.b	#AniIDSonAni_Walk,anim(a0)
+	;tst.b	pinball_mode(a0)
+	;bne.s	Sonic_ResetOnFloor_Part3
+	;move.b	#AniIDSonAni_Walk,anim(a0)
 ; loc_1B0AC:
 Sonic_ResetOnFloor_Part2:
 	; some routines outside of Tails' code can call Sonic_ResetOnFloor_Part2
