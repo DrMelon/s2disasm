@@ -1458,8 +1458,12 @@ Update_HUD_rings:		ds.b	1
 Update_HUD_timer:		ds.b	1
 Update_HUD_score:		ds.b	1
 
-Golf_meter_x:			ds.w	1
-Golf_meter_y:			ds.w	1
+Golf_meter_x:			ds.w	1 ; 2 bytes
+Golf_meter_y:			ds.w	1 ; 2 bytes
+Golf_swings_taken:		ds.w	1 ; 2 bytes for sizing
+Golf_mode_status:			ds.w	1 ; 2 bytes; bit 0 = golf strike mode on/off, bit 1 = golf strike mode X/Y
+
+
 
 Ring_count:			ds.w	1	; 2 bytes
 Timer:						; 4 bytes
@@ -1471,7 +1475,10 @@ Timer_centisecond:				; inaccurate name (the seconds increase when this reaches 
 Timer_frame:			ds.b	1	; 1 byte
 
 Score:				ds.l	1	; 4 bytes
-				ds.b	6	; $FFFFFE2A-$FFFFFE2F ; seems unused
+
+
+				ds.b	2	; empty space to play with
+				
 Last_star_pole_hit:		ds.b	1	; 1 byte -- max activated starpole ID in this act
 Saved_Last_star_pole_hit:	ds.b	1
 Saved_x_pos:			ds.w	1

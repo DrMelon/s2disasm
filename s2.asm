@@ -26887,7 +26887,7 @@ Off_TitleCardLetters:
 TitleCardLetters:
 
 TitleCardLetters_EHZ:
-	titleLetters	"DUSK VALLEY"
+	titleLetters	"EMERALD HILL"
 TitleCardLetters_MTZ:
 	titleLetters	"METROPOLIS"
 TitleCardLetters_HTZ:
@@ -27318,7 +27318,7 @@ Obj3C_Main:
 	lea	(Obj3C_FragmentSpeeds_RightToLeft).l,a4
 +
 	move.w	x_vel(a1),inertia(a1)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	;bclr	#5,status(a1)
 	bsr.s	BreakObjectToPieces
 ; loc_15E02:
@@ -30194,7 +30194,7 @@ loc_177F2:
 loc_177FA:
 	bset	#1,status(a0)
 	bclr	#4,status(a0)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	clr.b	jumping(a0)
 	move.w	#SndID_LargeBumper,d0
 	jmp	(PlaySound).l
@@ -33593,7 +33593,7 @@ Obj01_NotRight:
 	bne.w	Obj01_ResetScr	; if yes, branch
 	tst.w	inertia(a0)	; is Sonic moving?
 	bne.w	Obj01_ResetScr	; if yes, branch
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	;move.b	#AniIDSonAni_Wait,anim(a0)	; use "standing" animation
 	btst	#3,status(a0)
 	beq.w	Sonic_Balance
@@ -33861,7 +33861,7 @@ Obj01_CheckWallsOnGround:
 	cmpi.b	#$80,d0
 	beq.s	loc_1A6A2
 	add.w	d1,x_vel(a0)
-	;bset	#5,status(a0)
+	bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -33871,7 +33871,7 @@ loc_1A6A2:
 ; ---------------------------------------------------------------------------
 loc_1A6A8:
 	sub.w	d1,x_vel(a0)
-	;bset	#5,status(a0)
+	bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -33893,7 +33893,7 @@ Sonic_MoveLeft:
 +
 	bset	#0,status(a0)
 	bne.s	+
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 +
 	sub.w	d5,d0	; add acceleration to the left
@@ -33945,7 +33945,7 @@ Sonic_MoveRight:
 	bmi.s	Sonic_TurnRight	; if Sonic is already moving to the left, branch
 	bclr	#0,status(a0)
 	beq.s	+
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 +
 	add.w	d5,d0	; add acceleration to the right
@@ -34165,23 +34165,16 @@ Sonic_GolfMeter:
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button press
 	bne.w	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
 GolfButtonNotPressed:
-	btst	#5,status(a0) ;don't increment meter x or y if not in strikemode
+	btst	#5,(Golf_mode_status).w ;don't increment meter x or y if not in strikemode
 	beq.w	SkipGolf
-	tst.b	spindash_flag(a0) ; are we in x or y strike mode
+	btst	#1,(Golf_mode_status).w ; are we in x or y strike mode
 	bne.s	golfymode ; branch if we are in Y mode
+;----------------------------------------------------
 	;xmode
 	;put sin of acc in d0
 	move.w	(Timer_frames).w,d0
-	jsr		(CalcSine).l ; this sine doesn't work quite like i want - doesn't go -1-> 0-> 1 -> 0 -> -1, goes -1 -> 0 -> 1 -> -1, linear cycle, but works well enough
-	; to fix that, we would do something like this
-	;
-	; default f(x) = (0 approaches 255 and then loops back around)
-	; we could branch at y = 127 (e.g, halfway point)
-	; 
-	;
-	;
-	;
-	asl.w  	#3,d0
+	jsr		(CalcSine).l
+	asl.w  	#4,d0
 	move.w	d0,(Golf_meter_x).w
 	jmp 	SkipGolf	
 ;---------------------------------------
@@ -34189,51 +34182,55 @@ golfymode:
 	;ymode
 	move.w	(Timer_frames).w,d0
 	jsr		(CalcSine).l
-	addi.w	#255,d0
-	asl.w	#3,d0
-	neg.w	d0
-	move.w	d0,(Golf_meter_y).w
+	addi.w	#255,d1
+	asl.w	#3,d1
+	neg.w	d1
+	move.w	d1,(Golf_meter_y).w
 	jmp		SkipGolf
-
-	;; Note to self: was messing up blo/bhi and btst stuff.
 
 GolfButtonPressed:
 	move.w	inertia(a0),d0; cannot enter golf mode while still moving
 	cmpi.w  #$0040,d0
 	bhi.s	GolfButtonNotPressed
-	btst	#5,status(a0) ;are we in strike mode?
+	btst	#5,(Golf_mode_status).w ;are we in strike mode?
 	bne.w	+
-	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
+	bclr	#1,(Golf_mode_status).w ; reset X/Y of strike mode
 	move.w  #0,(Golf_meter_x).w;
 	move.w  #0,(Golf_meter_y).w;
-	bset	#5,status(a0) ;in strike mode now
-	move.w	#SndID_Ring,d0
-	jsr	(PlaySound).l	; play ring sound
+	
+	bset	#5,(Golf_mode_status).w ;in strike mode now
+	move.w	#SndID_SpindashRev,d0
+	jsr	(PlaySound).l	; play rev sound
 	jmp 	GolfButtonNotPressed
 +
 	;in strike status already, check if it's in X or Y mode, and advance to next step if so
-	tst.b	spindash_flag(a0)
+	btst	#1,(Golf_mode_status).w
 	bne.s	GolfSwing
-	move.b	#1,spindash_flag(a0)
+	move.w	#SndID_Blip,d0
+	jsr	(PlaySound).l	; play blip sound
+	bset	#1,(Golf_mode_status).w
 	jmp 	GolfButtonNotPressed
 
 SkipGolf:
 	rts
 
 GolfSwing:
-	bclr	#5,status(a0) ; strike mode cleared! 
+	bclr	#5,(Golf_mode_status).w ; strike mode cleared! 
 
 	; set x veloc, set y veloc, set rolling/jumping
 	move.w	(Golf_meter_y).w,y_vel(a0)
 	move.w	(Golf_meter_x).w,x_vel(a0)
 	move.w	#$400,inertia(a0)
 	bset	#1,status(a0)
-	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
+	bclr	#1,(Golf_mode_status).w ; reset X/Y of strike mode
 	; increment the number of swings taken on this act
+	addi.w	#1,(Golf_swings_taken).w;
 
 	; play sound
-	move.w	#SndID_Spring,d0 ;   maybe set noise based on strength of hit? monitor pop, thoomp, spring...
+	move.w	#SndID_CNZLaunch,d0 ;   maybe set noise based on strength of hit? monitor pop, thoomp, spring...
 	jsr	(PlaySound).l	; play spindash rev sound
+
+	
 
 	jmp		GolfButtonNotPressed
 
@@ -34465,7 +34462,7 @@ GolfRightOLD:
 	;add.w   d0,x_vel(a0) ; make Sonic jump RIGHTWAYS
 DoneGolfHitOLD:
 	bset	#1,status(a0)
-	;;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	addq.l	#4,sp
 	move.b	#1,jumping(a0)
 	clr.b	stick_to_convex(a0)
@@ -35174,7 +35171,7 @@ Sonic_ResetOnFloor_Part2:
 ; loc_1B0DA:
 Sonic_ResetOnFloor_Part3:
 	bclr	#1,status(a0)
-	;;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	bclr	#4,status(a0)
 	move.b	#0,jumping(a0)
 	move.w	#0,(Chain_Bonus_counter).w
@@ -35338,6 +35335,7 @@ Obj01_ResetLevel_Part2:
 	move.w	(Saved_art_tile).w,art_tile(a0)
 	move.w	(Saved_Solid_bits).w,top_solid_bit(a0)
 	clr.w	(Ring_count).w
+	clr.w	(Golf_swings_taken).w
 	clr.b	(Extra_life_flags).w
 	move.b	#0,obj_control(a0)
 	move.b	#5,anim(a0)
@@ -35401,7 +35399,7 @@ Sonic_Animate:
 	move.b	d0,next_anim(a0)	; set to next animation
 	move.b	#0,anim_frame(a0)	; reset animation frame
 	move.b	#0,anim_frame_duration(a0)	; reset frame duration
-	;;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 ; loc_1B384:
 SAnim_Do:
 	add.w	d0,d0
@@ -35482,7 +35480,7 @@ SAnim_WalkRun:
 	andi.b	#$FC,render_flags(a0)
 	eor.b	d1,d2
 	or.b	d2,render_flags(a0)
-	;btst	#5,status(a0)
+	btst	#5,status(a0)
 	;bne.w	SAnim_Push
 	lsr.b	#4,d0		; divide angle by 16
 	andi.b	#6,d0		; angle must be 0, 2, 4 or 6
@@ -36721,7 +36719,7 @@ Obj02_NotRight:
 	bne.w	Obj02_ResetScr	; if yes, branch
 	tst.w	inertia(a0)	; is Tails moving?
 	bne.w	Obj02_ResetScr	; if yes, branch
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDTailsAni_Wait,anim(a0)	; use "standing" animation
 	btst	#3,status(a0)
 	beq.s	Tails_Balance
@@ -36885,7 +36883,7 @@ Obj02_CheckWallsOnGround:
 	cmpi.b	#$80,d0
 	beq.s	loc_1C286
 	add.w	d1,x_vel(a0)
-	;bset	#5,status(a0)
+	bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -36897,7 +36895,7 @@ loc_1C286:
 
 loc_1C28C:
 	sub.w	d1,x_vel(a0)
-	;bset	#5,status(a0)
+	bset	#5,status(a0)
 	move.w	#0,inertia(a0)
 	rts
 ; ---------------------------------------------------------------------------
@@ -36919,7 +36917,7 @@ Tails_MoveLeft:
 +
 	bset	#0,status(a0)
 	bne.s	+
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDTailsAni_Run,next_anim(a0)
 +
 	sub.w	d5,d0	; add acceleration to the left
@@ -36971,7 +36969,7 @@ Tails_MoveRight:
 	bmi.s	Tails_TurnRight
 	bclr	#0,status(a0)
 	beq.s	+
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDTailsAni_Run,next_anim(a0)
 +
 	add.w	d5,d0	; add acceleration to the right
@@ -37375,7 +37373,7 @@ Tails_Jump:
 	asr.l	#8,d0
 	add.w	d0,y_vel(a0)	; make Tails jump (in Y)
 	bset	#1,status(a0)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	addq.l	#4,sp
 	move.b	#1,jumping(a0)
 	clr.b	stick_to_convex(a0)
@@ -37964,7 +37962,7 @@ Tails_ResetOnFloor_Part2:
 ; loc_1CB80:
 Tails_ResetOnFloor_Part3:
 	bclr	#1,status(a0)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	bclr	#4,status(a0)
 	move.b	#0,jumping(a0)
 	move.w	#0,(Chain_Bonus_counter).w
@@ -38180,7 +38178,7 @@ Tails_Animate_Part2:
 	move.b	d0,next_anim(a0)	; set to next animation
 	move.b	#0,anim_frame(a0)	; reset animation frame
 	move.b	#0,anim_frame_duration(a0)	; reset frame duration
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 ; loc_1CDEC:
 TAnim_Do:
 	add.w	d0,d0
@@ -39869,7 +39867,7 @@ loc_1E33C:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E336
 	bset	#1,status(a0)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -39977,7 +39975,7 @@ loc_1E420:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E41A
 	bset	#1,status(a0)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -40044,7 +40042,7 @@ loc_1E4CE:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E4C8
 	bset	#1,status(a0)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -40111,7 +40109,7 @@ loc_1E57C:
 	tst.b	stick_to_convex(a0)
 	bne.s	loc_1E576
 	bset	#1,status(a0)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	move.b	#AniIDSonAni_Run,next_anim(a0)
 	rts
 ; ===========================================================================
@@ -45103,7 +45101,7 @@ Obj1B_GiveBoost:
 +
 	move.w	#$F,move_lock(a1)	; don't let him turn around for a few frames
 	move.w	x_vel(a1),inertia(a1)	; update his inertia value
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	bclr	#6,status(a0)
 	;bclr	#5,status(a1)
 ; loc_223D8:
@@ -45436,7 +45434,7 @@ loc_22688:
 	move.w	#$800,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	move.b	#0,jumping(a1)
@@ -48057,7 +48055,7 @@ loc_24FF0:
 	move.w	#0,y_vel(a1)
 
 loc_25002:
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	bset	#3,status(a1)
@@ -48300,7 +48298,7 @@ loc_252F0:
 	move.w	#$1000,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	bset	#3,status(a1)
@@ -50496,7 +50494,7 @@ loc_271D0:
 	move.w	#$800,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	;bclr	#5,status(a0)
+	bclr	#5,status(a0)
 	;bclr	#5,status(a1)
 	bset	#1,status(a1)
 	move.w	x_pos(a0),x_pos(a1)
@@ -78244,7 +78242,7 @@ BranchTo8_JmpTo45_DisplaySprite
 
 ObjC5_PlatformReleaserDestroyP: 	; P=Platforms
 	addq.b	#2,routine_secondary(a0)
-	;bset	#5,status(a0)		; destroy platforms
+	bset	#5,status(a0)		; destroy platforms
 	jmpto	(DisplaySprite).l, JmpTo45_DisplaySprite
 ; ===========================================================================
 
@@ -78623,7 +78621,7 @@ ObjC5_NoHitPointsLeft:	; when the boss is defeated this tells it what to do
 	clr.b	collision_flags(a0)
 	move.w	#$EF,objoff_30(a0)
 	move.b	#$1E,routine_secondary(a0)
-	;bset	#5,status(a0)
+	bset	#5,status(a0)
 	bclr	#6,status(a0)
 	rts
 ; ===========================================================================
@@ -79547,7 +79545,7 @@ loc_3D89E:
 ; ---------------------------------------------------------------------------
 +
 	addq.b	#2,next_anim(a0)
-	;bset	#5,status(a0)
+	bset	#5,status(a0)
 	move.b	#$40,anim_frame_duration(a0)
 	rts
 ; ===========================================================================
@@ -84351,8 +84349,8 @@ HudUpdate:
 	bsr.w	Hud_Score
 ; loc_40DBA:
 Hud_ChkRings:
-	tst.b	(Update_HUD_rings).w	; does the ring counter need updating?
-	beq.s	Hud_ChkTime	; if not, branch
+	;tst.b	(Update_HUD_rings).w	; does the ring counter need updating?
+	;beq.s	Hud_ChkTime	; if not, branch
 	bpl.s	loc_40DC6
 	bsr.w	Hud_InitRings
 
@@ -84360,7 +84358,8 @@ loc_40DC6:
 	clr.b	(Update_HUD_rings).w
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_HUD_Rings),VRAM,WRITE),d0
 	moveq	#0,d1
-	move.w	(Ring_count).w,d1
+	;move.w	(Ring_count).w,d1 ;   INSTEAD OF RINGS, SHOW STRIKES
+	move.w 	(Golf_swings_taken).w,d1
 	bsr.w	Hud_Rings
 ; loc_40DDA:
 Hud_ChkTime:
@@ -84432,8 +84431,8 @@ loc_40E84:
 
 loc_40E9A:
 	bsr.w	HudDb_XY
-	tst.b	(Update_HUD_rings).w
-	beq.s	loc_40EBE
+	;tst.b	(Update_HUD_rings).w
+	;beq.s	loc_40EBE
 	bpl.s	loc_40EAA
 	bsr.w	Hud_InitRings
 
@@ -84442,7 +84441,8 @@ loc_40EAA:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_HUD_Rings),VRAM,WRITE),d0
 
 	moveq	#0,d1
-	move.w	(Ring_count).w,d1
+	;move.w	(Ring_count).w,d1
+	move.w	(Golf_swings_taken).w,d1
 	bsr.w	Hud_Rings
 
 loc_40EBE:
