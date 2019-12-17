@@ -34168,21 +34168,45 @@ GolfButtonNotPressed:
 	btst	#5,status(a0) ;don't increment meter x or y if not in strikemode
 	beq.w	SkipGolf
 	tst.b	spindash_flag(a0) ; are we in x or y strike mode
-	bne.s	+ ; branch if we are in Y mode
+	bne.s	golfymode ; branch if we are in Y mode
 	;xmode
 	;put sin of acc in d0
 	move.b	(Timer_frame).w,d0
 	jsr		(CalcSine).l ; this sine doesn't work quite like i want - doesn't go -1-> 0-> 1 -> 0 -> -1, goes -1 -> 0 -> 1 -> -1, linear cycle, but works well enough
-	sub.w   #127, d0
-	asl.w  	#4,d0
+	; to fix that, we would do something like this
+	;
+	; default f(x) = (0 approaches 255 and then loops back around)
+	; we could branch at y = 127 (e.g, halfway point)
+	; 
+	;
+	;
+	;
+	cmpi.w  #127, d0
+	blo.s golfxinc ;do the thing i just said
+	move.w  #255, d1
+	sub.w 	d0, d1
+	move.w	d1, d0
+golfxinc:
+	asl.w  	#5,d0
+	btst	#0,status(a0) ;facing left or right?
+	beq.s	golfxfacing ;
+	neg.w	d0
+golfxfacing:
 	move.w	d0,(Golf_meter_x).w
-
 	jmp 	SkipGolf	
-+
+;---------------------------------------
+golfymode:
 	;ymode
 	move.b	(Timer_frame).w,d0
 	jsr		(CalcSine).l
-	muls.w	#-12,d0
+	cmpi.w  #127, d0
+	blo.s golfyinc
+	move.w  #255, d1
+	sub.w 	d0, d1
+	move.w	d1, d0
+golfyinc:
+	asl.w	#5,d0
+	neg.w	d0
 	move.w	d0,(Golf_meter_y).w
 	jmp		SkipGolf
 
