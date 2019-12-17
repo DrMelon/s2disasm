@@ -26887,7 +26887,7 @@ Off_TitleCardLetters:
 TitleCardLetters:
 
 TitleCardLetters_EHZ:
-	titleLetters	"EMERALD HOLE"
+	titleLetters	"DUSK VALLEY"
 TitleCardLetters_MTZ:
 	titleLetters	"METROPOLIS"
 TitleCardLetters_HTZ:
@@ -34171,7 +34171,7 @@ GolfButtonNotPressed:
 	bne.s	golfymode ; branch if we are in Y mode
 	;xmode
 	;put sin of acc in d0
-	move.b	(Timer_frame).w,d0
+	move.w	(Timer_frames).w,d0
 	jsr		(CalcSine).l ; this sine doesn't work quite like i want - doesn't go -1-> 0-> 1 -> 0 -> -1, goes -1 -> 0 -> 1 -> -1, linear cycle, but works well enough
 	; to fix that, we would do something like this
 	;
@@ -34181,31 +34181,16 @@ GolfButtonNotPressed:
 	;
 	;
 	;
-	cmpi.w  #127, d0
-	blo.s golfxinc ;do the thing i just said
-	move.w  #255, d1
-	sub.w 	d0, d1
-	move.w	d1, d0
-golfxinc:
-	asl.w  	#5,d0
-	btst	#0,status(a0) ;facing left or right?
-	beq.s	golfxfacing ;
-	neg.w	d0
-golfxfacing:
+	asl.w  	#3,d0
 	move.w	d0,(Golf_meter_x).w
 	jmp 	SkipGolf	
 ;---------------------------------------
 golfymode:
 	;ymode
-	move.b	(Timer_frame).w,d0
+	move.w	(Timer_frames).w,d0
 	jsr		(CalcSine).l
-	cmpi.w  #127, d0
-	blo.s golfyinc
-	move.w  #255, d1
-	sub.w 	d0, d1
-	move.w	d1, d0
-golfyinc:
-	asl.w	#5,d0
+	addi.w	#255,d0
+	asl.w	#3,d0
 	neg.w	d0
 	move.w	d0,(Golf_meter_y).w
 	jmp		SkipGolf
