@@ -56,8 +56,8 @@ flips_remaining =	$2C ; number of flip revolutions remaining
 flip_speed =		$2D ; number of flip revolutions per frame / 256
 move_lock =		$2E ; and $2F ; horizontal control lock, counts down to 0
 invulnerable_time =	$30 ; and $31 ; time remaining until you stop blinking
-golf_y_axis =	$32 ; and $33 ; remaining
-golf_x_axis =	$34 ; and $35 ; remaining
+invincibility_time =	$32 ; and $33 ; remaining
+speedshoes_time =	$34 ; and $35 ; remaining
 next_tilt =		$36 ; angle on ground in front of sprite
 tilt =			$37 ; angle on ground
 stick_to_convex =	$38 ; 0 for normal, 1 to make Sonic stick to convex surfaces like the rotating discs in Sonic 1 and 3 (unused in Sonic 2 but fully functional)
@@ -1458,6 +1458,9 @@ Update_HUD_rings:		ds.b	1
 Update_HUD_timer:		ds.b	1
 Update_HUD_score:		ds.b	1
 
+Golf_meter_x:			ds.w	1
+Golf_meter_y:			ds.w	1
+
 Ring_count:			ds.w	1	; 2 bytes
 Timer:						; 4 bytes
 Timer_minute_word:				; 2 bytes
@@ -1534,7 +1537,7 @@ Timer_second_2P:		ds.b	1	; 1 byte
 Timer_centisecond_2P:				; inaccurate name (the seconds increase when this reaches 60)
 Timer_frame_2P:			ds.b	1	; 1 byte
 Score_2P:			ds.l	1
-				ds.b	6	; $FFFFFEDA-$FFFFFEDF ; seems unused
+				ds.b	2	; $FFFFFEDA-$FFFFFEDF ; seems unused
 Last_star_pole_hit_2P:		ds.b	1
 Saved_Last_star_pole_hit_2P:	ds.b	1
 Saved_x_pos_2P:			ds.w	1

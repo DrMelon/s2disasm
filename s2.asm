@@ -23876,7 +23876,7 @@ ChkPlayer_1up:
 super_shoes:
 	addq.w	#1,(a2)
 	bset	#status_sec_hasSpeedShoes,status_secondary(a1)	; give super sneakers status
-	;move.w	#$4B0,speedshoes_time(a1)
+	move.w	#$4B0,speedshoes_time(a1)
 	cmpa.w	#MainCharacter,a1	; did the main character break the monitor?
 	bne.s	super_shoes_Tails	; if not, branch
 	cmpi.w	#2,(Player_mode).w	; is player using Tails?
@@ -23924,7 +23924,7 @@ invincible_monitor:
 	tst.b	(Super_Sonic_flag).w	; is Sonic super?
 	bne.s	+++	; rts		; if yes, branch
 	bset	#status_sec_isInvincible,status_secondary(a1)	; give invincibility status
-	;move.w	#20*60,invincibility_time(a1) ; 20 seconds
+	move.w	#20*60,invincibility_time(a1) ; 20 seconds
 	tst.b	(Current_Boss_ID).w	; don't change music during boss battles
 	bne.s	+
 	cmpi.b	#$C,air_left(a1)	; or when drowning
@@ -33219,6 +33219,7 @@ Obj01_Init:
 	move.w	y_pos(a0),(Saved_y_pos).w
 	move.w	art_tile(a0),(Saved_art_tile).w
 	move.w	top_solid_bit(a0),(Saved_Solid_bits).w
+	
 
 Obj01_Init_Continued:
 	move.b	#0,flips_remaining(a0)
@@ -33312,10 +33313,10 @@ Obj01_Display:
 Obj01_ChkInvin:		; Checks if invincibility has expired and disables it if it has.
 	btst	#status_sec_isInvincible,status_secondary(a0)
 	beq.s	Obj01_ChkShoes
-	;tst.w	invincibility_time(a0)
-	;beq.s	Obj01_ChkShoes	; If there wasn't any time left, that means we're in Super Sonic mode.
-	;subq.w	#1,invincibility_time(a0)
-	;bne.s	Obj01_ChkShoes
+	tst.w	invincibility_time(a0)
+	beq.s	Obj01_ChkShoes	; If there wasn't any time left, that means we're in Super Sonic mode.
+	subq.w	#1,invincibility_time(a0)
+	bne.s	Obj01_ChkShoes
 	tst.b	(Current_Boss_ID).w	; Don't change music if in a boss fight
 	bne.s	Obj01_RmvInvin
 	cmpi.b	#$C,air_left(a0)	; Don't change music if drowning
@@ -33329,10 +33330,10 @@ Obj01_RmvInvin:
 Obj01_ChkShoes:		; Checks if Speed Shoes have expired and disables them if they have.
 	btst	#status_sec_hasSpeedShoes,status_secondary(a0)
 	beq.s	Obj01_ExitChk
-	;tst.w	speedshoes_time(a0)
-	;beq.s	Obj01_ExitChk
-	;subq.w	#1,speedshoes_time(a0)
-	;bne.s	Obj01_ExitChk
+	tst.w	speedshoes_time(a0)
+	beq.s	Obj01_ExitChk
+	subq.w	#1,speedshoes_time(a0)
+	bne.s	Obj01_ExitChk
 	move.w	#$600,(Sonic_top_speed).w
 	move.w	#$C,(Sonic_acceleration).w
 	move.w	#$80,(Sonic_deceleration).w
@@ -34158,11 +34159,14 @@ Sonic_BrakeRollingLeft:
 ;
 ;
 ; -----------------
+
 Sonic_GolfMeter:
 	move.b 	(Ctrl_1_Press_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button press
 	bne.w	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
 GolfButtonNotPressed:
+	btst	#5,status(a0) ;don't increment meter x or y if not in strikemode
+	beq.w	SkipGolf
 	tst.b	spindash_flag(a0) ; are we in x or y strike mode
 	bne.s	+ ; branch if we are in Y mode
 	;xmode
@@ -34170,16 +34174,16 @@ GolfButtonNotPressed:
 	move.b	(Timer_frame).w,d0
 	jsr		(CalcSine).l ; this sine doesn't work quite like i want - doesn't go -1-> 0-> 1 -> 0 -> -1, goes -1 -> 0 -> 1 -> -1, linear cycle, but works well enough
 	sub.w   #127, d0
-	muls.w  #8,d0
-	move.w	d0,golf_x_axis(a0)
+	asl.w  	#4,d0
+	move.w	d0,(Golf_meter_x).w
 
 	jmp 	SkipGolf	
 +
 	;ymode
 	move.b	(Timer_frame).w,d0
 	jsr		(CalcSine).l
-	muls.w	#-8,d0
-	move.w	d0,golf_y_axis(a0)
+	muls.w	#-12,d0
+	move.w	d0,(Golf_meter_y).w
 	jmp		SkipGolf
 
 	;; Note to self: was messing up blo/bhi and btst stuff.
@@ -34191,8 +34195,8 @@ GolfButtonPressed:
 	btst	#5,status(a0) ;are we in strike mode?
 	bne.w	+
 	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
-	move.w  #0,golf_x_axis(a0);
-	move.w  #0,golf_y_axis(a0);
+	move.w  #0,(Golf_meter_x).w;
+	move.w  #0,(Golf_meter_y).w;
 	bset	#5,status(a0) ;in strike mode now
 	move.w	#SndID_Ring,d0
 	jsr	(PlaySound).l	; play ring sound
@@ -34211,14 +34215,11 @@ GolfSwing:
 	bclr	#5,status(a0) ; strike mode cleared! 
 
 	; set x veloc, set y veloc, set rolling/jumping
-	move.w	golf_y_axis(a0),y_vel(a0)
-	move.w	golf_x_axis(a0),x_vel(a0)
+	move.w	(Golf_meter_y).w,y_vel(a0)
+	move.w	(Golf_meter_x).w,x_vel(a0)
 	move.w	#$400,inertia(a0)
 	bset	#1,status(a0)
-	;move.b	#1,jumping(a0)
 	move.b	#0,spindash_flag(a0) ; reset X/Y of strike mode
-	move.w  #0,golf_x_axis(a0);
-	move.w  #0,golf_y_axis(a0);
 	; increment the number of swings taken on this act
 
 	; play sound
@@ -34554,7 +34555,7 @@ Sonic_CheckGoSuper:
 	move.w	#$A00,(Sonic_top_speed).w
 	move.w	#$30,(Sonic_acceleration).w
 	move.w	#$100,(Sonic_deceleration).w
-	;move.w	#0,invincibility_time(a0)
+	move.w	#0,invincibility_time(a0)
 	bset	#status_sec_isInvincible,status_secondary(a0)	; make Sonic invincible
 	move.w	#SndID_SuperTransform,d0
 	jsr	(PlaySound).l	; Play transformation sound effect.
@@ -34602,7 +34603,7 @@ Sonic_RevertToNormal:
 	move.w	#$28,(Palette_frame).w
 	move.b	#0,(Super_Sonic_flag).w
 	move.b	#1,next_anim(a0)	; Change animation back to normal ?
-	;move.w	#1,invincibility_time(a0)	; Remove invincibility
+	move.w	#1,invincibility_time(a0)	; Remove invincibility
 	move.w	#$600,(Sonic_top_speed).w
 	move.w	#$C,(Sonic_acceleration).w
 	move.w	#$80,(Sonic_deceleration).w
@@ -36038,10 +36039,10 @@ Obj02_Display:
 Obj02_ChkInvinc:	; Checks if invincibility has expired and disables it if it has.
 	btst	#status_sec_isInvincible,status_secondary(a0)
 	beq.s	Obj02_ChkShoes
-	;tst.w	invincibility_time(a0)
-	;beq.s	Obj02_ChkShoes
-	;subq.w	#1,invincibility_time(a0)
-	;bne.s	Obj02_ChkShoes
+	tst.w	invincibility_time(a0)
+	beq.s	Obj02_ChkShoes
+	subq.w	#1,invincibility_time(a0)
+	bne.s	Obj02_ChkShoes
 	tst.b	(Current_Boss_ID).w	; Don't change music if in a boss fight
 	bne.s	Obj02_RmvInvin
 	cmpi.b	#$C,air_left(a0)	; Don't change music if drowning
@@ -36055,10 +36056,10 @@ Obj02_RmvInvin:
 Obj02_ChkShoes:		; Checks if Speed Shoes have expired and disables them if they have.
 	btst	#status_sec_hasSpeedShoes,status_secondary(a0)
 	beq.s	Obj02_ExitChk
-	;tst.w	speedshoes_time(a0)
-	;beq.s	Obj02_ExitChk
-	;subq.w	#1,speedshoes_time(a0)
-	;bne.s	Obj02_ExitChk
+	tst.w	speedshoes_time(a0)
+	beq.s	Obj02_ExitChk
+	subq.w	#1,speedshoes_time(a0)
+	bne.s	Obj02_ExitChk
 	move.w	#$600,(Tails_top_speed).w
 	move.w	#$C,(Tails_acceleration).w
 	move.w	#$80,(Tails_deceleration).w
@@ -84331,8 +84332,8 @@ HudUpdate:
 	lea	(VDP_data_port).l,a6
 	tst.w	(Two_player_mode).w
 	bne.w	loc_40F50
-	tst.w	(Debug_mode_flag).w	; is debug mode on?
-	bne.w	loc_40E9A	; if yes, branch
+	;tst.w	(Debug_mode_flag).w	; is debug mode on?
+	jmp	loc_40E9A	; if yes, branch
 	tst.b	(Update_HUD_score).w	; does the score need updating?
 	beq.s	Hud_ChkRings	; if not, branch
 	clr.b	(Update_HUD_score).w
@@ -84698,11 +84699,11 @@ Hud_TilesBase_End
 ; sub_410E4:
 HudDb_XY:
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_HUD_Score_E),VRAM,WRITE),(VDP_control_port).l
-	move.w	(Camera_X_pos).w,d1
+	move.w	(Golf_meter_x).w,d1
 	swap	d1
 	move.w	(MainCharacter+x_pos).w,d1
 	bsr.s	HudDb_XY2
-	move.w	(Camera_Y_pos).w,d1
+	move.w	(Golf_meter_y).w,d1
 	swap	d1
 	move.w	(MainCharacter+y_pos).w,d1
 ; loc_41104:
