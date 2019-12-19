@@ -25805,6 +25805,7 @@ loc_141E6:
 	add.w	d0,(Total_Bonus_Countdown).w
 	tst.w	d0
 	bne.s	loc_14256
+	move.w	#0,(Golf_swings_taken).w ; reset swing count
 	move.w	#SndID_TallyEnd,d0
 	jsr	(PlaySound).l
 	addq.b	#2,routine(a0)
@@ -35448,7 +35449,6 @@ Obj01_ResetLevel_Part2:
 	move.w	(Saved_art_tile).w,art_tile(a0)
 	move.w	(Saved_Solid_bits).w,top_solid_bit(a0)
 	clr.w	(Ring_count).w
-	clr.w	(Golf_swings_taken).w
 	clr.b	(Extra_life_flags).w
 	move.b	#0,obj_control(a0)
 	move.b	#5,anim(a0)
