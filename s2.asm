@@ -34243,10 +34243,10 @@ GolfButtonPressed:
 	
 	bset	#0,(Golf_mode_status).w ;in strike mode now
 
-	; ENTERING STRIKE MODE = ADD H-BAR
+	; ENTERING STRIKE MODE = ADD H-BAR AND PIP
 	bsr.w	SingleObjLoad
 	_move.b	#ObjID_GolfMeterH,id(a1) ; load objDD via GolfMeterH.
-	move.w	x_pos(a0),x_pos(a1)
+	move.w	x_pos(a0),x_pos(a1) ; store init pos!!!
 	move.w	y_pos(a0),y_pos(a1)
 	subi.w	#32,y_pos(a1)
 	move.b	#4,mapping_frame(a1)
@@ -34261,7 +34261,7 @@ GolfButtonPressed:
 	bne.s	GolfSwing
 	move.w	#SndID_Blip,d0
 	jsr	(PlaySound).l	; play blip sound
-	; ENTERING Y MODE = REMOVE H-BAR, ADD V-BAR
+	; ENTERING Y MODE = ADD V-BAR AND PIP
 	bset	#1,(Golf_mode_status).w
 	jmp 	GolfButtonNotPressed
 
