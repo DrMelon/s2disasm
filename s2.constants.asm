@@ -709,7 +709,7 @@ ObjID_ContinueChars =		id(ObjPtr_ContinueChars)	; DB
 ObjID_RingPrize =		id(ObjPtr_RingPrize)		; DC
 ObjID_GolfMeterH =		id(ObjPtr_GolfMeterH)		; DD
 ;ObjID_GolfMeterV =		id(ObjPtr_GolfMeterV)		; DE
-;ObjID_GolfMeterPip =		id(ObjPtr_GolfMeterPip)		; DF
+ObjID_GolfMeterPip =		id(ObjPtr_GolfMeterPip)		; DF
 
 ; Music IDs
 offset :=	zMasterPlaylist
@@ -1465,6 +1465,8 @@ Golf_meter_x:			ds.w	1 ; 2 bytes
 Golf_meter_y:			ds.w	1 ; 2 bytes
 Golf_swings_taken:		ds.w	1 ; 2 bytes for sizing
 Golf_mode_status:			ds.w	1 ; 2 bytes; bit 0 = golf strike mode on/off, bit 1 = golf strike mode X/Y
+Golf_bar_posx:			ds.w	1; 2 bytes; golf bar pos stuff
+Golf_bar_posy:			ds.w	1; 2 bytes
 
 
 
@@ -1479,8 +1481,6 @@ Timer_frame:			ds.b	1	; 1 byte
 
 Score:				ds.l	1	; 4 bytes
 
-
-				ds.b	2	; empty space to play with
 				
 Last_star_pole_hit:		ds.b	1	; 1 byte -- max activated starpole ID in this act
 Saved_Last_star_pole_hit:	ds.b	1
@@ -1506,7 +1506,7 @@ Saved_Extra_life_flags_2P:	ds.b	1	; stored, but never restored
 Saved_Camera_Max_Y_pos:		ds.w	1
 Saved_Dynamic_Resize_Routine:	ds.b	1
 
-				ds.b	5	; $FFFFFE59-$FFFFFE5D ; seems unused
+				ds.b	3	; $FFFFFE59-$FFFFFE5D ; seems unused
 Oscillating_Numbers:
 Oscillation_Control:			ds.w	1
 Oscillating_variables:
