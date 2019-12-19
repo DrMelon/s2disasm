@@ -23561,17 +23561,17 @@ ObjDF_Main:
 	; else just do x mode logic
 	move.w	(Golf_bar_posy).w,y_pos(a0);  move self to hbar y pos
 	move.w	(Golf_bar_posx).w,x_pos(a0);  move self to hbar x pos, then add stuff
-	move.w	(Golf_meter_x).w,d3 ; capture x str
-	asr.w	#5, d3; range is about +- 2k, so shift right by 5 bits gets in the +- 64 range..?
-	add.w	d3,x_pos(a0) ; apply to xpos
+	;move.w	(Golf_meter_x).w,d3 ; capture x str
+	;asr.w	#5, d3; range is about +- 2k, so shift right by 5 bits gets in the +- 64 range..?
+	;add.w	d3,x_pos(a0) ; apply to xpos
 	jmp ObjDF_MainMode
 
 ObjDF_MoveYMode:
 	move.w	(Golf_bar_posx).w,y_pos(a0);  move self to ybar x pos
 	move.w	(Golf_bar_posy).w,y_pos(a0);  move self to ybar y pos, then add stuff
-	move.w	(Golf_meter_y).w,d3 ; capture y str
-	asr.w	#5, d3; range is about 4k, so shift right by 5 bits gets in the 128 range..?
-	add.w	d3,y_pos(a0) ; apply to ypos
+	;move.w	(Golf_meter_y).w,d3 ; capture y str
+	;asr.w	#5, d3; range is about 4k, so shift right by 5 bits gets in the 128 range..?
+	;add.w	d3,y_pos(a0) ; apply to ypos
 
 ObjDF_MainMode:
 	bra.w	DisplaySprite
