@@ -23486,7 +23486,38 @@ JmpTo4_CalcSine
 	align 4
     endif
 
+;;;;;;;;;;;;;;;;;;;; GOLF OBJECTS!!!
+; ===========================================================================
+; ----------------------------------------------------------------------------
+; Object DD - Golf Meter Horizontal
+; ----------------------------------------------------------------------------
+ObjDD:
+	moveq	#0,d0
+	move.b	routine(a0),d0
+	move.w	ObjDD_Index(pc,d0.w),d1
+	jmp	ObjDD_Index(pc,d1.w)
+; ===========================================================================
+ObjDD_Index:	offsetTable
+		offsetTableEntry.w ObjDD_Init	; 0
+		offsetTableEntry.w ObjDD_Main	; 2
+; ===========================================================================
 
+ObjDD_Init:
+	addq.b	#2,routine(a0)
+	move.l	#Obj29_MapUnc_11ED0,mappings(a0)
+	move.w	#make_art_tile(ArtTile_ArtNem_Numbers,0,1),art_tile(a0)
+	bsr.w	Adjust2PArtPointer
+	move.b	#4,render_flags(a0)
+	move.b	#1,priority(a0)
+	move.b	#8,width_pixels(a0)
+	move.w	#-$300,y_vel(a0)	; set initial speed (upwards)
+
+ObjDD_Main:
+	tst.w	y_vel(a0)		; test speed
+	bpl.w	DeleteObject		; if it's positive (>= 0), delete the object
+	bsr.w	ObjectMove		; move the points
+	addi.w	#$18,y_vel(a0)		; slow down
+	bra.w	DisplaySprite
 
 
 ; ===========================================================================
@@ -27726,6 +27757,13 @@ ObjPtr_ContinueText:
 ObjPtr_ContinueIcons:	dc.l ObjDA	; Continue text
 ObjPtr_ContinueChars:	dc.l ObjDB	; Sonic lying down or Tails nagging (continue screen)
 ObjPtr_RingPrize:	dc.l ObjDC	; Ring prize from Casino Night Zone
+
+
+;;;; GOLF OBJECTS
+ObjPtr_GolfMeterH:	dc.l	ObjDD ; golf meter bar horizontal
+;ObjPtr_GolfMeterV:	dc.l	ObjDE ; golf meter bar vertical
+;ObjPtr_GolfMeterPip:	dc.l	ObjDF ; golf meter pip
+
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 4C, 4D, 4E, 4F, 62, D0, and D1
@@ -34199,6 +34237,18 @@ GolfButtonPressed:
 	move.w  #0,(Golf_meter_y).w;
 	
 	bset	#5,(Golf_mode_status).w ;in strike mode now
+
+	;;; TEST: ADD SPRITE OBJECT
+	bsr.w	SingleObjLoad
+	_move.b	#ObjID_GolfMeterH,id(a1) ; load objDD via GolfMeterH.
+	move.w	x_pos(a0),x_pos(a1)
+	move.w	y_pos(a0),y_pos(a1)
+	subi.w	#32,y_pos(a1)
+	move.b	#4,mapping_frame(a1)
+
+
+
+
 	move.w	#SndID_SpindashRev,d0
 	jsr	(PlaySound).l	; play rev sound
 	jmp 	GolfButtonNotPressed

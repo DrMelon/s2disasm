@@ -707,6 +707,9 @@ ObjID_ContinueText =		id(ObjPtr_ContinueText)		; DA
 ObjID_ContinueIcons =		id(ObjPtr_ContinueIcons)	; DA
 ObjID_ContinueChars =		id(ObjPtr_ContinueChars)	; DB
 ObjID_RingPrize =		id(ObjPtr_RingPrize)		; DC
+ObjID_GolfMeterH =		id(ObjPtr_GolfMeterH)		; DD
+;ObjID_GolfMeterV =		id(ObjPtr_GolfMeterV)		; DE
+;ObjID_GolfMeterPip =		id(ObjPtr_GolfMeterPip)		; DF
 
 ; Music IDs
 offset :=	zMasterPlaylist
