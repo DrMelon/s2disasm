@@ -23515,8 +23515,9 @@ ObjDD_Main:
 	;; H-BAR; test if not in strike or in y-mode & delete self if so.
 
 	; set pos to orig spawn pos + hbar offset? hbar should probably only display...
-	; logic would involve storing initial pos somewhere in init func probly.
-	; likely only need to store one axis, since the spawning of the object takes care of the other.
+	move.w	(Golf_bar_posx).w,x_pos(a0)
+	move.w	(Golf_bar_posy).w,y_pos(a0)
+	subi.w	#32,y_pos(a0) ; move above sonic a little
 
 	btst	#0,(Golf_mode_status).w ; test on/off strike mode
 	beq.w	DeleteObject		; if it's not in strke mode, delete self
@@ -23561,6 +23562,7 @@ ObjDF_Main:
 	; else just do x mode logic
 	move.w	(Golf_bar_posy).w,y_pos(a0);  move self to hbar y pos
 	move.w	(Golf_bar_posx).w,x_pos(a0);  move self to hbar x pos, then add stuff
+	subi.w	#32,y_pos(a0) ; move above sonic a little
 	move.w	(Golf_meter_x).w,d3 ; capture x str
 	asr.w	#6, d3; range is about +- 2k, so shift right by 6 bits gets in the +- 32 range..?
 	add.w	d3,x_pos(a0) ; apply to xpos
@@ -23569,6 +23571,7 @@ ObjDF_Main:
 ObjDF_MoveYMode:
 	move.w	(Golf_bar_posx).w,x_pos(a0);  move self to ybar x pos
 	move.w	(Golf_bar_posy).w,y_pos(a0);  move self to ybar y pos, then add stuff
+	subi.w	#16,y_pos(a0) ; move above sonic a little
 	move.w	(Golf_meter_y).w,d3 ; capture y str
 	asr.w	#6, d3; range is about 4k, so shift right by 6 bits gets in the 0-64 range..?
 	add.w	d3,y_pos(a0) ; apply to ypos
@@ -34257,6 +34260,9 @@ Sonic_BrakeRollingLeft:
 ; -----------------
 
 Sonic_GolfMeter:
+	move.w	x_pos(a0),(Golf_bar_posx).w ; store meter pos!!!
+	move.w	y_pos(a0),(Golf_bar_posy).w
+
 	move.b 	(Ctrl_1_Press_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button press
 	bne.w	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
@@ -34299,12 +34305,7 @@ GolfButtonPressed:
 	; ENTERING STRIKE MODE = ADD H-BAR
 	bsr.w	SingleObjLoad
 	_move.b	#ObjID_GolfMeterH,id(a1) ; load objDD via GolfMeterH.
-	move.w	x_pos(a0),(Golf_bar_posx).w ; store init pos!!!
-	move.w	y_pos(a0),(Golf_bar_posy).w
-	subi.w	#32,(Golf_bar_posy).w
-	move.w	(Golf_bar_posx).w,x_pos(a1)
-	move.w	(Golf_bar_posy).w,y_pos(a1)
-	
+
 
 	; ENTERING STRIKE MODE = ADD PIP
 	bsr.w	SingleObjLoad
