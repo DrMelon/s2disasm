@@ -23547,7 +23547,7 @@ ObjDF_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a0)
 	bsr.w	Adjust2PArtPointer
 	move.b	#4,render_flags(a0)
-	move.b	#1,priority(a0)
+	move.b	#0,priority(a0)
 	move.b	#8,width_pixels(a0)
 
 ObjDF_Main:
