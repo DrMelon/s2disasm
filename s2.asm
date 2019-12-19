@@ -23504,8 +23504,8 @@ ObjDD_Index:	offsetTable
 
 ObjDD_Init:
 	addq.b	#2,routine(a0)
-	move.l	#Obj29_MapUnc_11ED0,mappings(a0)
-	move.w	#make_art_tile(ArtTile_ArtNem_Numbers,0,1),art_tile(a0)
+	move.l	#Obj25_MapUnc_12382,mappings(a0)
+	move.w	#make_art_tile(ArtTile_ArtNem_Ring,3,0),art_tile(a0);
 	bsr.w	Adjust2PArtPointer
 	move.b	#4,render_flags(a0)
 	move.b	#1,priority(a0)
@@ -23532,8 +23532,8 @@ ObjDD_Main:
 ObjDF:
 	moveq	#0,d0
 	move.b	routine(a0),d0
-	move.w	ObjDD_Index(pc,d0.w),d1
-	jmp	ObjDD_Index(pc,d1.w)
+	move.w	ObjDF_Index(pc,d0.w),d1
+	jmp	ObjDF_Index(pc,d1.w)
 ; ===========================================================================
 ObjDF_Index:	offsetTable
 		offsetTableEntry.w ObjDF_Init	; 0
@@ -23546,7 +23546,7 @@ ObjDF_Init:
 	move.w	#make_art_tile(ArtTile_ArtNem_Ring,1,0),art_tile(a0)
 	bsr.w	Adjust2PArtPointer
 	move.b	#4,render_flags(a0)
-	move.b	#0,priority(a0)
+	move.b	#1,priority(a0)
 	move.b	#8,width_pixels(a0)
 
 ObjDF_Main:
@@ -23561,17 +23561,17 @@ ObjDF_Main:
 	; else just do x mode logic
 	move.w	(Golf_bar_posy).w,y_pos(a0);  move self to hbar y pos
 	move.w	(Golf_bar_posx).w,x_pos(a0);  move self to hbar x pos, then add stuff
-	;move.w	(Golf_meter_x).w,d3 ; capture x str
-	;asr.w	#5, d3; range is about +- 2k, so shift right by 5 bits gets in the +- 64 range..?
-	;add.w	d3,x_pos(a0) ; apply to xpos
+	move.w	(Golf_meter_x).w,d3 ; capture x str
+	asr.w	#6, d3; range is about +- 2k, so shift right by 6 bits gets in the +- 32 range..?
+	add.w	d3,x_pos(a0) ; apply to xpos
 	jmp ObjDF_MainMode
 
 ObjDF_MoveYMode:
-	move.w	(Golf_bar_posx).w,y_pos(a0);  move self to ybar x pos
+	move.w	(Golf_bar_posx).w,x_pos(a0);  move self to ybar x pos
 	move.w	(Golf_bar_posy).w,y_pos(a0);  move self to ybar y pos, then add stuff
-	;move.w	(Golf_meter_y).w,d3 ; capture y str
-	;asr.w	#5, d3; range is about 4k, so shift right by 5 bits gets in the 128 range..?
-	;add.w	d3,y_pos(a0) ; apply to ypos
+	move.w	(Golf_meter_y).w,d3 ; capture y str
+	asr.w	#6, d3; range is about 4k, so shift right by 6 bits gets in the 0-64 range..?
+	add.w	d3,y_pos(a0) ; apply to ypos
 
 ObjDF_MainMode:
 	bra.w	DisplaySprite
@@ -34299,7 +34299,6 @@ GolfButtonPressed:
 	; ENTERING STRIKE MODE = ADD H-BAR
 	bsr.w	SingleObjLoad
 	_move.b	#ObjID_GolfMeterH,id(a1) ; load objDD via GolfMeterH.
-	move.b	#4,mapping_frame(a1)
 	move.w	x_pos(a0),(Golf_bar_posx).w ; store init pos!!!
 	move.w	y_pos(a0),(Golf_bar_posy).w
 	subi.w	#32,(Golf_bar_posy).w
@@ -34310,7 +34309,6 @@ GolfButtonPressed:
 	; ENTERING STRIKE MODE = ADD PIP
 	bsr.w	SingleObjLoad
 	_move.b	#ObjID_GolfMeterPip,id(a1) ; load objDD via GolfMeterH.
-	move.b	#4,mapping_frame(a1)
 
 	move.w	#SndID_SpindashRev,d0
 	jsr	(PlaySound).l	; play rev sound
