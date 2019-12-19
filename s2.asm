@@ -23510,13 +23510,18 @@ ObjDD_Init:
 	move.b	#4,render_flags(a0)
 	move.b	#1,priority(a0)
 	move.b	#8,width_pixels(a0)
-	move.w	#-$300,y_vel(a0)	; set initial speed (upwards)
 
 ObjDD_Main:
-	tst.w	y_vel(a0)		; test speed
-	bpl.w	DeleteObject		; if it's positive (>= 0), delete the object
-	bsr.w	ObjectMove		; move the points
-	addi.w	#$18,y_vel(a0)		; slow down
+	;; H-BAR; test if not in strike or in y-mode & delete self if so.
+
+	; set pos to orig spawn pos + hbar offset? hbar should probably only display...
+	; logic would involve storing initial pos somewhere in init func probly.
+	; likely only need to store one axis, since the spawning of the object takes care of the other.
+
+	btst	#0,(Golf_mode_status).w ; test on/off strike mode
+	beq.w	DeleteObject		; if it's not in strke mode, delete self
+	btst 	#1,(Golf_mode_status).w ; test X/Y status.
+	bne.w	DeleteObject		; if it's in Y mode, delete self.
 	bra.w	DisplaySprite
 
 
@@ -34203,7 +34208,7 @@ Sonic_GolfMeter:
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button press
 	bne.w	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
 GolfButtonNotPressed:
-	btst	#5,(Golf_mode_status).w ;don't increment meter x or y if not in strikemode
+	btst	#0,(Golf_mode_status).w ;don't increment meter x or y if not in strikemode
 	beq.w	SkipGolf
 	btst	#1,(Golf_mode_status).w ; are we in x or y strike mode
 	bne.s	golfymode ; branch if we are in Y mode
@@ -34230,23 +34235,21 @@ GolfButtonPressed:
 	move.w	inertia(a0),d0; cannot enter golf mode while still moving
 	cmpi.w  #$0040,d0
 	bhi.s	GolfButtonNotPressed
-	btst	#5,(Golf_mode_status).w ;are we in strike mode?
+	btst	#0,(Golf_mode_status).w ;are we in strike mode?
 	bne.w	+
 	bclr	#1,(Golf_mode_status).w ; reset X/Y of strike mode
 	move.w  #0,(Golf_meter_x).w;
 	move.w  #0,(Golf_meter_y).w;
 	
-	bset	#5,(Golf_mode_status).w ;in strike mode now
+	bset	#0,(Golf_mode_status).w ;in strike mode now
 
-	;;; TEST: ADD SPRITE OBJECT
+	; ENTERING STRIKE MODE = ADD H-BAR
 	bsr.w	SingleObjLoad
 	_move.b	#ObjID_GolfMeterH,id(a1) ; load objDD via GolfMeterH.
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
 	subi.w	#32,y_pos(a1)
 	move.b	#4,mapping_frame(a1)
-
-
 
 
 	move.w	#SndID_SpindashRev,d0
@@ -34258,6 +34261,7 @@ GolfButtonPressed:
 	bne.s	GolfSwing
 	move.w	#SndID_Blip,d0
 	jsr	(PlaySound).l	; play blip sound
+	; ENTERING Y MODE = REMOVE H-BAR, ADD V-BAR
 	bset	#1,(Golf_mode_status).w
 	jmp 	GolfButtonNotPressed
 
@@ -34265,7 +34269,7 @@ SkipGolf:
 	rts
 
 GolfSwing:
-	bclr	#5,(Golf_mode_status).w ; strike mode cleared! 
+	bclr	#0,(Golf_mode_status).w ; strike mode cleared! 
 
 	; set x veloc, set y veloc, set rolling/jumping
 	move.w	(Golf_meter_y).w,y_vel(a0)
