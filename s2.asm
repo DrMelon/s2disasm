@@ -23515,16 +23515,25 @@ ObjDD_Main:
 	;; H-BAR; test if not in strike or in y-mode & delete self if so.
 
 	; set pos to orig spawn pos + hbar offset? hbar should probably only display...
-	move.w	(Golf_bar_posx).w,x_pos(a0)
-	move.w	(Golf_bar_posy).w,y_pos(a0)
-	subi.w	#32,y_pos(a0) ; move above sonic a little
+	
 
 	btst	#0,(Golf_mode_status).w ; test on/off strike mode
 	beq.w	DeleteObject		; if it's not in strke mode, delete self
 	btst 	#1,(Golf_mode_status).w ; test X/Y status.
-	bne.w	DeleteObject		; if it's in Y mode, delete self.
-	bra.w	DisplaySprite
+	bne.w	GolfMeterYMode		; if it's in Y mode
 
+
+	;; display Horizontal
+	move.w	(Golf_bar_posx).w,x_pos(a0)
+	move.w	(Golf_bar_posy).w,y_pos(a0)
+	subi.w	#32,y_pos(a0) ; move above sonic a little
+	bra.w	DisplaySprite
+GolfMeterYMode:
+	;; display Vertical
+	move.w	(Golf_bar_posx).w,x_pos(a0)
+	move.w	(Golf_bar_posy).w,y_pos(a0)
+	subi.w	#16,y_pos(a0) ; move above sonic a little
+	bra.w	DisplaySprite
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
