@@ -34321,7 +34321,7 @@ GolfButtonPressed:
 	bsr.w	SingleObjLoad
 	_move.b	#ObjID_GolfMeterPip,id(a1) ; load objDD via GolfMeterH.
 
-	move.w	#SndID_SpindashRev,d0
+	move.w	#SndID_Bwoop,d0
 	jsr	(PlaySound).l	; play rev sound
 	jmp 	GolfButtonNotPressed
 +
