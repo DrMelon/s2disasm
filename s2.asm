@@ -16554,7 +16554,7 @@ SetHorizScrollFlags:
 ScrollHoriz:
 	move.w	(a1),d4		; get camera X pos
 	tst.b	(Teleport_flag).w
-	bne.s	.return		; if a teleport is in progress, return
+	;bne.s	.return		; if a teleport is in progress, return -- GOLF COMMENTED OUT
 	move.w	(a5),d1		; should scrolling be delayed?
 	beq.s	.scrollNotDelayed	; if not, branch
 	subi.w	#$100,d1	; reduce delay value
@@ -34269,31 +34269,74 @@ Sonic_BrakeRollingLeft:
 ;
 ; -----------------
 
-Sonic_GolfMeter:
-	move.w	x_pos(a0),(Golf_bar_posx).w ; store meter pos!!!
-	move.w	y_pos(a0),(Golf_bar_posy).w
+Golf_ResetBall:
+	move.w	(Golf_bar_posx).w,x_pos(a0)
+	move.w	(Golf_bar_posy).w,y_pos(a0)
 
+	move.w	#0,x_vel(a0)
+	move.w	#0,y_vel(a0)
+	move.w	#0,inertia(a0)
+
+	; tele vfx & sfx
+	move.b	#$40,(Teleport_timer).w
+	move.b	#1,(Teleport_flag).w
+	move.w	#SndID_Teleport,d0
+	jsr	(PlaySound).l	; play teleport bzeoow sound
+	
+	rts
+
+Sonic_GolfMeter:
+	addi.w, #1,(Golf_accumulator).w ;; increment golf accumulator. do we need to worry about overflow?
+	cmpi.w, #512,(Golf_accumulator).w ; reset after it hits 512 anyways (should be enough for a full sinewave?)
+	blo.s +
+	move.w, #0,(Golf_accumulator).w
++
+	; CHECK FOR RESET HELD - BUT ONLY IF STRIKE MODE IS OFF
+	btst	#0,(Golf_mode_status).w
+	bne.w	GolfMeterMainCheck
+	move.b 	(Ctrl_1_Held_Logical).w,d0
+	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button held
+	beq.s GolfResetRelease ; if not held, reset timer and move on
+	; else tick down 
+	subi.w, #1,(Golf_reset_timer).w
+	; check above one
+	cmpi.w, #1,(Golf_reset_timer).w
+	bhi.s +
+	; if below one, we reset the ball
+	jsr	Golf_ResetBall
+	
+	jmp GolfResetRelease
++
+	jmp GolfMeterMainCheck
+
+
+
+GolfResetRelease:
+	move.w	#90,(Golf_reset_timer).w
+	jmp GolfMeterMainCheck
+
+GolfMeterMainCheck:
 	move.b 	(Ctrl_1_Press_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button press
 	bne.w	GolfButtonPressed ; have we pushed a button? if not, just do what we normally do.
 GolfButtonNotPressed:
 	btst	#0,(Golf_mode_status).w ;don't increment meter x or y if not in strikemode
 	beq.w	SkipGolf
+	move.w	x_pos(a0),(Golf_bar_posx).w ; store meter pos each frame in strikemode.
+	move.w	y_pos(a0),(Golf_bar_posy).w
+	move.w	(Golf_accumulator).w,d0 ;precalc sine on accumulator val
+	jsr		(CalcSine).l
 	btst	#1,(Golf_mode_status).w ; are we in x or y strike mode
 	bne.s	golfymode ; branch if we are in Y mode
 ;----------------------------------------------------
 	;xmode
 	;put sin of acc in d0
-	move.w	(Timer_frames).w,d0
-	jsr		(CalcSine).l
 	asl.w  	#4,d0
 	move.w	d0,(Golf_meter_x).w
 	jmp 	SkipGolf	
 ;---------------------------------------
 golfymode:
 	;ymode
-	move.w	(Timer_frames).w,d0
-	jsr		(CalcSine).l
 	addi.w	#255,d1
 	asl.w	#3,d1
 	neg.w	d1
@@ -34311,6 +34354,14 @@ GolfButtonPressed:
 	move.w  #0,(Golf_meter_y).w;
 	
 	bset	#0,(Golf_mode_status).w ;in strike mode now
+
+	; ENTERING STRIKE MODE - RESET GOLF ACCUMULATOR.
+	; if facing left, reset to half-way?
+	move.w	#0,(Golf_accumulator).w
+	btst	#0,status(a0)
+	beq.w	GolfSkipAccumLeft
+	move.w	#127,(Golf_accumulator).w
+GolfSkipAccumLeft:
 
 	; ENTERING STRIKE MODE = ADD H-BAR
 	bsr.w	SingleObjLoad
@@ -34330,6 +34381,9 @@ GolfButtonPressed:
 	bne.s	GolfSwing
 	move.w	#SndID_Blip,d0
 	jsr	(PlaySound).l	; play blip sound
+	; ENTERING Y MODE - RESET ACCUM
+	move.w	#127,(Golf_accumulator).w ;127 for cosine is at bottom.
+
 	; ENTERING Y MODE = ADD V-BAR
 	bset	#1,(Golf_mode_status).w
 	jmp 	GolfButtonNotPressed
@@ -84461,8 +84515,8 @@ HudUpdate:
 	lea	(VDP_data_port).l,a6
 	tst.w	(Two_player_mode).w
 	bne.w	loc_40F50
-	;tst.w	(Debug_mode_flag).w	; is debug mode on?
-	jmp	loc_40E9A	; if yes, branch
+	tst.w	(Debug_mode_flag).w	; is debug mode on?
+	bne.w	loc_40E9A	; if yes, branch
 	tst.b	(Update_HUD_score).w	; does the score need updating?
 	beq.s	Hud_ChkRings	; if not, branch
 	clr.b	(Update_HUD_score).w
