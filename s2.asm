@@ -35145,13 +35145,17 @@ Sonic_DoLevelCollision:
 	tst.w	d1
 	bpl.s	+
 	sub.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	neg.w	x_vel(a0); GOLF - REBOUND BABY
+	asr.w	#1,x_vel(a0); and half it
 +
 	bsr.w	CheckRightWallDist
 	tst.w	d1
 	bpl.s	+
 	add.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	neg.w	x_vel(a0); GOLF - REBOUND BABY
+	asr.w	#1,x_vel(a0); and half it
 +
 	bsr.w	Sonic_CheckFloor
 	tst.w	d1
@@ -35186,7 +35190,9 @@ loc_1AF5A:
 ; ===========================================================================
 
 loc_1AF68:
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	neg.w	x_vel(a0); GOLF - REBOUND BABY
+	asr.w	#1,x_vel(a0); and half it
 	cmpi.w	#$FC0,y_vel(a0)
 	ble.s	loc_1AF7C
 	move.w	#$FC0,y_vel(a0)
@@ -35206,7 +35212,9 @@ Sonic_HitLeftWall:
 	tst.w	d1
 	bpl.s	Sonic_HitCeiling ; branch if distance is positive (not inside wall)
 	sub.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	neg.w	x_vel(a0); GOLF - REBOUND BABY
+	asr.w	#1,x_vel(a0); and half it
 	move.w	y_vel(a0),inertia(a0)
 	rts
 ; ===========================================================================
@@ -35245,13 +35253,17 @@ Sonic_HitCeilingAndWalls:
 	tst.w	d1
 	bpl.s	+
 	sub.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0)	; stop Sonic since he hit a wall
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	neg.w	x_vel(a0); GOLF - REBOUND BABY
+	asr.w	#1,x_vel(a0); and half it
 +
 	bsr.w	CheckRightWallDist
 	tst.w	d1
 	bpl.s	+
 	add.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0)	; stop Sonic since he hit a wall
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	neg.w	x_vel(a0); GOLF - REBOUND BABY
+	asr.w	#1,x_vel(a0); and half it
 +
 	bsr.w	Sonic_CheckCeiling
 	tst.w	d1
@@ -35282,7 +35294,9 @@ Sonic_HitRightWall:
 	tst.w	d1
 	bpl.s	Sonic_HitCeiling2
 	add.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	neg.w	x_vel(a0); GOLF - REBOUND BABY
+	asr.w	#1,x_vel(a0); and half it
 	move.w	y_vel(a0),inertia(a0)
 	rts
 ; ===========================================================================
