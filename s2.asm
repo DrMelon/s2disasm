@@ -34292,8 +34292,8 @@ Sonic_GolfMeter:
 	move.w, #0,(Golf_accumulator).w
 +
 	; CHECK FOR RESET HELD - BUT ONLY IF STRIKE MODE IS OFF
-	btst	#0,(Golf_mode_status).w
-	bne.w	GolfMeterMainCheck
+	;btst	#0,(Golf_mode_status).w
+	;bne.w	GolfMeterMainCheck
 	move.b 	(Ctrl_1_Held_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button held
 	beq.s GolfResetRelease ; if not held, reset timer and move on
