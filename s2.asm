@@ -33370,8 +33370,10 @@ Obj01_Control:
 	moveq	#0,d0
 	move.b	status(a0),d0
 	andi.w	#6,d0	; %0000 %0110
+	; run sonic golf code
 	move.w	Obj01_Modes(pc,d0.w),d1
 	jsr	Obj01_Modes(pc,d1.w)	; run Sonic's movement control code
+	jsr Sonic_GolfMeter
 +
 	cmpi.w	#-$100,(Camera_Min_Y_pos).w	; is vertical wrapping enabled?
 	bne.s	+				; if not, branch
@@ -33640,7 +33642,7 @@ Obj01_MdRoll:
 	bsr.w	Sonic_RollRepel
 	bsr.w	Sonic_RollSpeed
 	bsr.w	Sonic_LevelBound
-	bsr.w	Sonic_GolfMeter
+	;bsr.w	Sonic_GolfMeter
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
 	bsr.w	Sonic_SlopeRepel
