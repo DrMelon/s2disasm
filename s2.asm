@@ -1439,6 +1439,9 @@ Pause_ChkStart:
 	beq.s	Pause_Loop	; if not, branch
 ; loc_13F2:
 Pause_Resume:
+;; GOLF MODE TOGGLE - press pause after entering 04, 20, 69 in the options screen
+	btst	#3,(Golf_mode_status).w
+	beq.s	Mus_Resume
 	btst	#2,(Golf_mode_status).w
 	beq.s +
 	bclr	#2,(Golf_mode_status).w
@@ -12269,9 +12272,10 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 	tst.w	d2				; Test this to determine which cheat to enable
 	bne.s	+				; If not 0, branch
 	move.b	#$F,(Continue_count).w		; Give 15 continues
+	bset	#3,(Golf_mode_status).w		; Allow golf pause toggle
 	; The next line causes the bug where the OOZ music plays until reset.
 	; Remove "&$7F" to fix the bug.
-	move.b	#SndID_ContinueJingle&$7F,d0	; Play the continue jingle
+	move.b	#SndID_ContinueJingle,d0	; Play the continue jingle
 	jsrto	(PlayMusic).l, JmpTo_PlayMusic
 	bra.s	++
 ; ===========================================================================
@@ -12287,7 +12291,7 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 level_select_cheat:	dc.b $19, $65,   9, $17,   0	; 17th September 1965, Yuji Naka's birthdate
 	rev02even
 ; byte_97B7
-continues_cheat:	dc.b   1,   1,   2,   4,   0	; 24th November, Sonic 2's release date in the EU and US: "Sonic 2sday"
+continues_cheat:	dc.b   04,   $20,   $69,   0	; 24th November, Sonic 2's release date in the EU and US: "Sonic 2sday"
 	rev02even
 debug_cheat:		dc.b   1,   9,   9,   2,   1,   1,   2,   4,   0	; 24th November 1992, Sonic 2's release date in the EU and US: "Sonic 2sday"
 	rev02even
