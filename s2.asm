@@ -21749,7 +21749,7 @@ sub_109DC:
 	btst	#3,status(a1)
 	beq.s	+
 	bclr	#3,status(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	move.b	#AniIDSonAni_Run,next_anim(a1)
 +
 	rts
@@ -21864,7 +21864,7 @@ sub_10B36:
 	btst	#3,status(a1)
 	beq.s	+	; rts
 	bclr	#3,status(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	move.b	#AniIDSonAni_Run,next_anim(a1)
 +
 	rts
@@ -27422,7 +27422,7 @@ Obj3C_Main:
 +
 	move.w	x_vel(a1),inertia(a1)
 	bclr	#5,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bsr.s	BreakObjectToPieces
 ; loc_15E02:
 Obj3C_Fragment:
@@ -31399,7 +31399,7 @@ loc_18B98:
 loc_18BAA:
 	bclr	#p1_pushing_bit,status(a0)
 	bclr	#p2_pushing_bit,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	move.w	#SndID_Spring,d0
 	jmp	(PlaySound).l
 ; ===========================================================================
@@ -32746,7 +32746,7 @@ loc_19ADC:
 	move.l	d6,d4
 	addq.b	#pushing_bit_delta,d4
 	bclr	d4,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 
 loc_19AEA:
 	moveq	#0,d4
@@ -33596,19 +33596,19 @@ Obj01_MdNormal_Checks:
 ; ---------------------------------------------------------------------------
 ; loc_1A2B8:
 Obj01_MdNormal:
-	jsr		Obj01_ChkRoll
 	btst	#2,(Golf_mode_status).w ; test golfmode override
+	bne.w	Obj01_ChkRoll ; force roll when not overridden
 	beq.s 	+
 	bsr.w	Sonic_CheckSpindash
 	bsr.w	Sonic_Jump
 +
 	bsr.w	Sonic_SlopeResist
 	btst	#2,(Golf_mode_status).w ; test golfmode override
+	bne.w	Obj01_ChkRoll ; force roll when not overridden
 	beq.s 	+
 	bsr.w	Sonic_Move ;; we can't run normally
 +
 	bsr.w	Sonic_Roll
-	jsr		Obj01_ChkRoll
 	bsr.w	Sonic_LevelBound
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
@@ -42085,7 +42085,7 @@ Obj44_BumpCharacter:
 	move.w	d0,y_vel(a1)
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.b	#1,anim(a0)
 	move.w	#SndID_Bumper,d0
@@ -42412,7 +42412,7 @@ loc_1FB0C:
 	move.b	#AniIDSonAni_Bubble,anim(a1)
 	move.w	#$23,move_lock(a1)
 	move.b	#0,jumping(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bclr	#4,status(a1)
 	btst	#2,status(a1)
 	beq.w	loc_1FBB8
@@ -45301,7 +45301,7 @@ Obj1B_GiveBoost:
 	move.w	x_vel(a1),inertia(a1)	; update his inertia value
 	bclr	#5,status(a0)
 	bclr	#6,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 ; loc_223D8:
 Obj1B_GiveBoost_Done:
 	move.w	#SndID_Spring,d0 ; spring boing sound
@@ -45633,7 +45633,7 @@ loc_22688:
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
 	bclr	#5,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bset	#1,status(a1)
 	move.b	#0,jumping(a1)
 	bclr	#high_priority_bit,art_tile(a1)
@@ -46902,7 +46902,7 @@ loc_23C26:
 	move.w	#0,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bclr	#high_priority_bit,art_tile(a1)
 	move.l	#-$96800,objoff_32(a0)
 	addq.b	#2,routine_secondary(a0)
@@ -46930,7 +46930,7 @@ loc_23CA0:
 	move.w	#0,inertia(a1)
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bclr	#high_priority_bit,art_tile(a1)
 	move.b	#1,obj_control(a2)
 	move.w	#0,inertia(a2)
@@ -47695,7 +47695,7 @@ loc_244A8:
 	move.b	#$F,lrb_solid_bit(a1)
 
 loc_244BA:
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	move.b	#AniIDSonAni_Run,next_anim(a1)
 	move.w	#SndID_Spring,d0 ; play spring bounce sound
 	jmp	(PlaySound).l
@@ -48254,7 +48254,7 @@ loc_24FF0:
 
 loc_25002:
 	bclr	#5,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bset	#1,status(a1)
 	bset	#3,status(a1)
 	move.w	a0,d0
@@ -48497,7 +48497,7 @@ loc_252F0:
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
 	bclr	#5,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bset	#1,status(a1)
 	bset	#3,status(a1)
 	move.b	objoff_3F(a0),mapping_frame(a0)
@@ -50587,7 +50587,7 @@ loc_270DC:
 +
 	bclr	#p1_pushing_bit,status(a0)
 	bclr	#p2_pushing_bit,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	move.w	#SndID_Spring,d0
 	jmp	(PlaySound).l
 ; ===========================================================================
@@ -50693,7 +50693,7 @@ loc_271D0:
 	move.w	#0,x_vel(a1)
 	move.w	#0,y_vel(a1)
 	bclr	#5,status(a0)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bset	#1,status(a1)
 	move.w	x_pos(a0),x_pos(a1)
 	move.w	y_pos(a0),y_pos(a1)
@@ -57489,7 +57489,7 @@ ObjD7_BounceUp:
 ObjD7_BounceEnd:
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.w	#SndID_Bumper,d0
 	jmp	(PlaySound).l
@@ -57743,7 +57743,7 @@ loc_2C7EC:
 loc_2C806:
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.w	#SndID_BonusBumper,d0
 	jsr	(PlaySound).l
@@ -79065,7 +79065,7 @@ ObjC6_State3_State2:
 ; loc_3D078:
 ObjC6_State3_State3:
 	lea	(MainCharacter).w,a1 ; a1=character
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bra.w	JmpTo65_DeleteObject
 ; ===========================================================================
 
@@ -79290,7 +79290,7 @@ loc_3D3A4:
 	move.w	d0,y_vel(a1)
 	bset	#1,status(a1)
 	bclr	#4,status(a1)
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	clr.b	jumping(a1)
 	move.w	#SndID_Bumper,d0
 	jsr	(PlaySound).l
@@ -80259,7 +80259,7 @@ loc_3DCEE:
 
 loc_3DD00:
 	movea.w	objoff_2C(a0),a1 ; a1=object
-	;bclr	#5,status(a1)
+	bclr	#5,status(a1)
 	bne.s	+
 	rts
 ; ---------------------------------------------------------------------------
