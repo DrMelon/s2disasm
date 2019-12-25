@@ -12293,7 +12293,7 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 level_select_cheat:	dc.b $19, $65,   9, $17,   0	; 17th September 1965, Yuji Naka's birthdate
 	rev02even
 ; byte_97B7
-continues_cheat:	dc.b   4,   $20,   6,   9,   0	; nice
+continues_cheat:	dc.b   6,   9,   6,   9,   0	; nice
 	rev02even
 debug_cheat:		dc.b   1,   9,   9,   2,   1,   1,   2,   4,   0	; 24th November 1992, Sonic 2's release date in the EU and US: "Sonic 2sday"
 	rev02even
