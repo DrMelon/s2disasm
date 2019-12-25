@@ -33713,7 +33713,7 @@ Obj01_NotRight:
 	tst.w	inertia(a0)	; is Sonic moving?
 	bne.w	Obj01_ResetScr	; if yes, branch
 	bclr	#5,status(a0)
-	;move.b	#AniIDSonAni_Wait,anim(a0)	; use "standing" animation
+	move.b	#AniIDSonAni_Wait,anim(a0)	; use "standing" animation
 	btst	#3,status(a0)
 	beq.w	Sonic_Balance
 	moveq	#0,d0
@@ -34571,7 +34571,7 @@ Sonic_Roll:
 	andi.b	#button_left_mask|button_right_mask,d0 ; is left/right being pressed?
 	bne.s	Obj01_NoRoll	; if yes, branch
 	btst	#button_down,(Ctrl_1_Held_Logical).w ; is down being pressed?
-	jmp	Obj01_ChkRoll			; if yes, branch
+	bne.s	Obj01_ChkRoll			; if yes, branch
 ; return_1A9F8:
 Obj01_NoRoll:
 	rts
@@ -35350,9 +35350,12 @@ return_1B09E:
 
 ; loc_1B0A0:
 Sonic_ResetOnFloor:
-	;tst.b	pinball_mode(a0)
-	;bne.s	Sonic_ResetOnFloor_Part3
-	;move.b	#AniIDSonAni_Walk,anim(a0)
+	btst	#2,(Golf_mode_status).w ; check golf override
+	beq.s	+
+	tst.b	pinball_mode(a0)
+	bne.s	Sonic_ResetOnFloor_Part3
+	move.b	#AniIDSonAni_Walk,anim(a0)
++
 ; loc_1B0AC:
 Sonic_ResetOnFloor_Part2:
 	; some routines outside of Tails' code can call Sonic_ResetOnFloor_Part2
@@ -43812,11 +43815,11 @@ Obj84_MainX:
 	cmp.w	d3,d4
 	bhs.s	return_21284
 	btst	#0,render_flags(a0)
-;	bne.s	+
-;	move.b	#1,pinball_mode(a1) ; enable must-roll "pinball mode"
-;	bra.s	loc_212C4
+	bne.s	+
+	move.b	#1,pinball_mode(a1) ; enable must-roll "pinball mode"
+	bra.s	loc_212C4
 ; ---------------------------------------------------------------------------
-;+	move.b	#0,pinball_mode(a1) ; disable pinball mode
++	move.b	#0,pinball_mode(a1) ; disable pinball mode
 
 return_21284:
 	rts
@@ -43838,10 +43841,10 @@ Obj84_MainX_Alt:
 	bhs.s	return_21284
 	btst	#0,render_flags(a0)
 	beq.s	+
-;	move.b	#1,pinball_mode(a1)
-;	bra.s	loc_212C4
+	move.b	#1,pinball_mode(a1)
+	bra.s	loc_212C4
 ; ---------------------------------------------------------------------------
-;+	move.b	#0,pinball_mode(a1)
++	move.b	#0,pinball_mode(a1)
 	rts
 ; ===========================================================================
 
@@ -43887,11 +43890,11 @@ Obj84_MainY:
 	cmp.w	d3,d4
 	bhs.s	return_21350
 	btst	#0,render_flags(a0)
-;	bne.s	+
-;	move.b	#1,pinball_mode(a1)
-;	bra.w	loc_212C4
+	bne.s	+
+	move.b	#1,pinball_mode(a1)
+	bra.w	loc_212C4
 ; ---------------------------------------------------------------------------
-;+	move.b	#0,pinball_mode(a1)
++	move.b	#0,pinball_mode(a1)
 
 return_21350:
 	rts
@@ -43912,11 +43915,11 @@ Obj84_MainY_Alt:
 	cmp.w	d3,d4
 	bhs.s	return_21350
 	btst	#0,render_flags(a0)
-;	beq.s	+
-;	move.b	#1,pinball_mode(a1)
-;	bra.w	loc_212C4
+	beq.s	+
+	move.b	#1,pinball_mode(a1)
+	bra.w	loc_212C4
 ; ---------------------------------------------------------------------------
-;+	move.b	#0,pinball_mode(a1)
++	move.b	#0,pinball_mode(a1)
 	rts
 
 
