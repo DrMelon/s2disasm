@@ -4693,6 +4693,7 @@ Level_SetPlayerMode:
 ; sub_446E:
 InitPlayers:
 	move.w	(Player_mode).w,d0
+	bclr	#2,(Golf_mode_status).w ; clear cutscene golfmode override
 	bne.s	InitPlayers_Alone ; branch if this isn't a Sonic and Tails game
 
 	move.b	#ObjID_Sonic,(MainCharacter+id).w ; load Obj01 Sonic object at $FFFFB000
@@ -12291,7 +12292,7 @@ CheckCheats:	; This is called from 2 places: the options screen and the level se
 level_select_cheat:	dc.b $19, $65,   9, $17,   0	; 17th September 1965, Yuji Naka's birthdate
 	rev02even
 ; byte_97B7
-continues_cheat:	dc.b   04,   $20,   $69,   0	; 24th November, Sonic 2's release date in the EU and US: "Sonic 2sday"
+continues_cheat:	dc.b   04,   $20,   $69,   0	; nice
 	rev02even
 debug_cheat:		dc.b   1,   9,   9,   2,   1,   1,   2,   4,   0	; 24th November 1992, Sonic 2's release date in the EU and US: "Sonic 2sday"
 	rev02even
@@ -18814,6 +18815,7 @@ LevEvents_WFZ_Routine6:
 	blo.s	+	; rts
 	addq.w	#2,(WFZ_LevEvent_Subrout).w ; => LevEvents_WFZ_RoutineNull
 	st	(Control_Locked).w
+	bset	#2,(Golf_mode_status).w ; disable golf mode for WFZ cutscene
 	moveq	#PLCID_Tornado,d0
 	jsrto	(LoadPLC).l, JmpTo2_LoadPLC
 +
@@ -32136,7 +32138,8 @@ Obj0D_Main_State3:
 	bne.w	return_194D0
 	btst	#1,(MainCharacter+status).w
 	bne.s	loc_19434
-	move.b	#1,(Control_Locked).w
+	move.b	#1,(Control_Locked).w 
+	bset	#2,(Golf_mode_status).w ; disable golf mode at end of stage so that sonic runs off properly.
 	move.w	#(button_right_mask<<8)|0,(Ctrl_1_Logical).w
 loc_19434:
 	; This check here is for S1's Big Ring, which would set Sonic's Object ID to 0
@@ -75660,6 +75663,7 @@ ObjB2_Main_SCZ:
 	cmpi.w	#$1568,d1
 	bhs.s	ObjB2_SCZ_Finished
 	st	(Control_Locked).w
+	bset	#2,(Golf_mode_status).w ; engage golf override for Sky Chase ending
 	move.w	#(button_right_mask<<8)|button_right_mask,(Ctrl_1_Logical).w
 	bra.w	loc_3A87C
 ; ===========================================================================
@@ -79821,6 +79825,7 @@ loc_3D922:
 +
 	addq.b	#2,anim(a0)
 	st	(Control_Locked).w
+	bset	#2,(Golf_mode_status).w ; golf mode override in death egg
 	move.w	#$1000,(Camera_Max_X_pos).w
 	rts
 ; ===========================================================================
