@@ -1439,7 +1439,13 @@ Pause_ChkStart:
 	beq.s	Pause_Loop	; if not, branch
 ; loc_13F2:
 Pause_Resume:
+	btst	#2,(Golf_mode_status).w
+	beq.s +
+	bclr	#2,(Golf_mode_status).w
+	jmp		Mus_Resume	
++
 	bset	#2,(Golf_mode_status).w
+Mus_Resume:
 	move.b	#MusID_Unpause,(Music_to_play).w	; unpause the music
 ; loc_13F8:
 Unpause:
@@ -33597,14 +33603,12 @@ Obj01_MdNormal_Checks:
 ; loc_1A2B8:
 Obj01_MdNormal:
 	btst	#2,(Golf_mode_status).w ; test golfmode override
-	bne.w	Obj01_ChkRoll ; force roll when not overridden
 	beq.s 	+
 	bsr.w	Sonic_CheckSpindash
 	bsr.w	Sonic_Jump
 +
 	bsr.w	Sonic_SlopeResist
 	btst	#2,(Golf_mode_status).w ; test golfmode override
-	bne.w	Obj01_ChkRoll ; force roll when not overridden
 	beq.s 	+
 	bsr.w	Sonic_Move ;; we can't run normally
 +
@@ -34435,7 +34439,12 @@ Sonic_ChgJumpDir:
 	move.w	(Sonic_top_speed).w,d6
 	move.w	(Sonic_acceleration).w,d5
 	asl.w	#1,d5
-	btst	#2,status(a0)		; did Sonic jump from rolling?
+	btst	#2,(Golf_mode_status).w ; prevent air control if rolled up in golfmode, otherwise just do when in jump-roll
+	bne.s	+
+	btst	#2,status(a0)		; is sonic Rolled?
+	bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
++
+	btst	#4,status(a0)		; is sonic jumping from rolling?
 	bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
 	move.w	x_vel(a0),d0
 	btst	#button_left,(Ctrl_1_Held_Logical).w
