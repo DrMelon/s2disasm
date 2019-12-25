@@ -1464,11 +1464,11 @@ Update_HUD_score:		ds.b	1
 Golf_meter_x:			ds.w	1 ; 2 bytes
 Golf_meter_y:			ds.w	1 ; 2 bytes
 Golf_swings_taken:		ds.w	1 ; 2 bytes for sizing
-Golf_mode_status:			ds.w	1 ; 2 bytes; bit 0 = golf strike mode on/off, bit 1 = golf strike mode X/Y
+Golf_mode_status:			ds.w	1 ; 2 bytes; bit 0 = golf strike mode on/off, bit 1 = golf strike mode X/Y, bit 2 = golf mode override
 Golf_bar_posx:			ds.w	1; 2 bytes; golf bar pos stuff
 Golf_bar_posy:			ds.w	1; 2 bytes
 Golf_reset_timer:		ds.b	1; 1 byte
-						ds.b	1; alignment/filler
+						ds.b	1; 
 Golf_accumulator:		ds.w	1; 2 bytes - to be used instead of timer_frames for golfin'
 
 

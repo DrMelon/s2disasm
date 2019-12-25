@@ -1439,6 +1439,7 @@ Pause_ChkStart:
 	beq.s	Pause_Loop	; if not, branch
 ; loc_13F2:
 Pause_Resume:
+	bset	#2,(Golf_mode_status).w
 	move.b	#MusID_Unpause,(Music_to_play).w	; unpause the music
 ; loc_13F8:
 Unpause:
@@ -33596,11 +33597,16 @@ Obj01_MdNormal_Checks:
 ; loc_1A2B8:
 Obj01_MdNormal:
 	jsr		Obj01_ChkRoll
-	;bsr.w	Sonic_CheckSpindash
-	;bsr.w	Sonic_GolfMeter
-	;bsr.w	Sonic_Jump
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.s 	+
+	bsr.w	Sonic_CheckSpindash
+	bsr.w	Sonic_Jump
++
 	bsr.w	Sonic_SlopeResist
-	;bsr.w	Sonic_Move ;; we can't run normally
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.s 	+
+	bsr.w	Sonic_Move ;; we can't run normally
++
 	bsr.w	Sonic_Roll
 	jsr		Obj01_ChkRoll
 	bsr.w	Sonic_LevelBound
@@ -33633,16 +33639,18 @@ Obj01_MdAir:
 ; Called if Sonic is in a ball, but not airborne (thus, probably rolling)
 ; loc_1A30A:
 Obj01_MdRoll:
-	
-	;tst.b	pinball_mode(a0)
-	;bne.s	+
-	;bsr.w	Sonic_Jump
-;+
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.s 	+
+
+	tst.b	pinball_mode(a0)
+	bne.s	+
+	bsr.w	Sonic_Jump
++
 	
 	bsr.w	Sonic_RollRepel
 	bsr.w	Sonic_RollSpeed
 	bsr.w	Sonic_LevelBound
-	;bsr.w	Sonic_GolfMeter
+	
 	jsr	(ObjectMove).l
 	bsr.w	AnglePos
 	bsr.w	Sonic_SlopeRepel
@@ -34153,17 +34161,19 @@ Sonic_ApplyRollSpeedLeft:
 
 ; loc_1A81E:
 Sonic_CheckRollStop:
-	;tst.w	inertia(a0)
-	;bne.s	Obj01_Roll_ResetScr
-	;tst.b	pinball_mode(a0) ; note: the spindash flag has a different meaning when Sonic's already rolling -- it's used to mean he's not allowed to stop rolling
-	;bne.s	Sonic_KeepRolling 
-	;bclr	#2,status(a0) ; KEEP ON ROLLING FOREVER, HEDGEHOG, YOU HAVE MADE YOUR CHOICES
-	;move.b	#$13,y_radius(a0)
-	;move.b	#9,x_radius(a0)
-	;move.b	#AniIDSonAni_Wait,anim(a0)
-	;subq.w	#5,y_pos(a0)
-	;bra.s	Obj01_Roll_ResetScr
-	jmp		Obj01_Roll_ResetScr
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.s	Obj01_Roll_ResetScr ; if golfmode not overridden, skip this func
+	tst.w	inertia(a0)
+	bne.s	Obj01_Roll_ResetScr
+	tst.b	pinball_mode(a0) ; note: the spindash flag has a different meaning when Sonic's already rolling -- it's used to mean he's not allowed to stop rolling
+	bne.s	Sonic_KeepRolling 
+	bclr	#2,status(a0) ; KEEP ON ROLLING FOREVER, HEDGEHOG, YOU HAVE MADE YOUR CHOICES
+	move.b	#$13,y_radius(a0)
+	move.b	#9,x_radius(a0)
+	move.b	#AniIDSonAni_Wait,anim(a0)
+	subq.w	#5,y_pos(a0)
+	bra.s	Obj01_Roll_ResetScr
+	
 
 ; ---------------------------------------------------------------------------
 ; magically gives Sonic an extra push if he's going to stop rolling where it's not allowed
@@ -34288,14 +34298,15 @@ Golf_ResetBall:
 	rts
 
 Sonic_GolfMeter:
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	bne.w	SkipGolf ; if golfmode overridden, skip this func
+
 	addi.w, #1,(Golf_accumulator).w ;; increment golf accumulator. do we need to worry about overflow?
 	cmpi.w, #512,(Golf_accumulator).w ; reset after it hits 512 anyways (should be enough for a full sinewave?)
 	blo.s +
 	move.w, #0,(Golf_accumulator).w
 +
-	; CHECK FOR RESET HELD - BUT ONLY IF STRIKE MODE IS OFF
-	;btst	#0,(Golf_mode_status).w
-	;bne.w	GolfMeterMainCheck
+	; CHECK FOR RESET HELD
 	move.b 	(Ctrl_1_Held_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; look for button held
 	beq.s GolfResetRelease ; if not held, reset timer and move on
@@ -34544,20 +34555,22 @@ Sonic_Boundary_Sides:
 
 ; loc_1A9D2:
 Sonic_Roll:
-    ;if status_sec_isSliding = 7
-	;tst.b	status_secondary(a0)
-	;bmi.s	Obj01_NoRoll
-    ;else
-	;btst	#status_sec_isSliding,status_secondary(a0)
-	;bne.s	Obj01_NoRoll
-    ;endif
-	;mvabs.w	inertia(a0),d0
-	;cmpi.w	#$80,d0		; is Sonic moving at $80 speed or faster?
-	;blo.s	Obj01_NoRoll	; if not, branch
-	;move.b	(Ctrl_1_Held_Logical).w,d0
-	;andi.b	#button_left_mask|button_right_mask,d0 ; is left/right being pressed?
-	;bne.s	Obj01_NoRoll	; if yes, branch
-	;btst	#button_down,(Ctrl_1_Held_Logical).w ; is down being pressed?
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.s	Obj01_ChkRoll ; if golfmode not overridden, skip this func
+    if status_sec_isSliding = 7
+	tst.b	status_secondary(a0)
+	bmi.s	Obj01_NoRoll
+    else
+	btst	#status_sec_isSliding,status_secondary(a0)
+	bne.s	Obj01_NoRoll
+    endif
+	mvabs.w	inertia(a0),d0
+	cmpi.w	#$80,d0		; is Sonic moving at $80 speed or faster?
+	blo.s	Obj01_NoRoll	; if not, branch
+	move.b	(Ctrl_1_Held_Logical).w,d0
+	andi.b	#button_left_mask|button_right_mask,d0 ; is left/right being pressed?
+	bne.s	Obj01_NoRoll	; if yes, branch
+	btst	#button_down,(Ctrl_1_Held_Logical).w ; is down being pressed?
 	jmp	Obj01_ChkRoll			; if yes, branch
 ; return_1A9F8:
 Obj01_NoRoll:
@@ -34597,6 +34610,8 @@ return_1AA36:
 
 ; loc_1AA38:
 Sonic_Jump:
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.w	return_1AAE6 ; if golfmode not overridden, skip this func
 	move.b	(Ctrl_1_Press_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; is A, B or C pressed?
 	beq.w	return_1AAE6	; if not, return
@@ -34621,32 +34636,17 @@ Sonic_Jump:
 	jsr	(CalcSine).l
 	muls.w	d2,d1
 	asr.l	#8,d1
-	;add.w	d1,x_vel(a0)	; make Sonic jump (in X... this adds nothing on level ground)
+	add.w	d1,x_vel(a0)	; make Sonic jump (in X... this adds nothing on level ground)
 	muls.w	d2,d0
 	asr.l	#8,d0
-	;add.w	d0,y_vel(a0)	; make Sonic jump (in Y)
-
-	;; test to see if pressing left or right when jumping
-	;; todo: make sure that you are able to press left intentionally and have a neutral jump with no input perhaps
-	btst	#button_right,(Ctrl_1_Held_Logical).w
-	bne.s	GolfRightOLD
-	btst	#button_left,(Ctrl_1_Held_Logical).w
-	bne.s   GolfLeftOLD
-	jmp DoneGolfHitOLD
-GolfLeftOLD:
-	;add.w	d0,x_vel(a0)    ; make Sonic jump LEFTWAYS (in X, fixed amount, slope not worried about)
-	jmp     DoneGolfHitOLD
-GolfRightOLD:
-	muls.w  #$FFFF, d0 ; negate this number?
-	;add.w   d0,x_vel(a0) ; make Sonic jump RIGHTWAYS
-DoneGolfHitOLD:
+	add.w	d0,y_vel(a0)	; make Sonic jump (in Y)
 	bset	#1,status(a0)
 	bclr	#5,status(a0)
 	addq.l	#4,sp
 	move.b	#1,jumping(a0)
 	clr.b	stick_to_convex(a0)
-	;move.w	#SndID_Jump,d0
-	;jsr	(PlaySound).l	; play jumping sound
+	move.w	#SndID_Jump,d0
+	jsr	(PlaySound).l	; play jumping sound
 	move.b	#$13,y_radius(a0)
 	move.b	#9,x_radius(a0)
 	btst	#2,status(a0)
@@ -34678,33 +34678,36 @@ Sonic_RollJump:
 ; ===========================================================================
 ; loc_1AAF0:
 Sonic_JumpHeight:
-	rts
-;	tst.b	jumping(a0)	; is Sonic jumping?
-;	beq.s	Sonic_UpVelCap	; if not, branch
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.s	Sonic_JumpHeightEnd ; if golfmode not overridden, skip this func
+	
+	tst.b	jumping(a0)	; is Sonic jumping?
+	beq.s	Sonic_UpVelCap	; if not, branch
 
-;	move.w	#-$400,d1
-;	btst	#6,status(a0)	; is Sonic underwater?
-;	beq.s	+		; if not, branch
-;	move.w	#-$200,d1
-;+
-;	cmp.w	y_vel(a0),d1	; is Sonic going up faster than d1?
-;	ble.s	+		; if not, branch
-;	move.b	(Ctrl_1_Held_Logical).w,d0
-;	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; is a jump button pressed?
-	;bne.s	+		; if yes, branch
-	;move.w	d1,y_vel(a0)	; immediately reduce Sonic's upward speed to d1
-;+
-;	tst.b	y_vel(a0)		; is Sonic exactly at the height of his jump?
-;	beq.s	Sonic_CheckGoSuper	; if yes, test for turning into Super Sonic
-;	rts
+	move.w	#-$400,d1
+	btst	#6,status(a0)	; is Sonic underwater?
+	beq.s	+		; if not, branch
+	move.w	#-$200,d1
++
+	cmp.w	y_vel(a0),d1	; is Sonic going up faster than d1?
+	ble.s	+		; if not, branch
+	move.b	(Ctrl_1_Held_Logical).w,d0
+	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; is a jump button pressed?
+	bne.s	+		; if yes, branch
+	move.w	d1,y_vel(a0)	; immediately reduce Sonic's upward speed to d1
++
+	tst.b	y_vel(a0)		; is Sonic exactly at the height of his jump?
+	beq.s	Sonic_CheckGoSuper	; if yes, test for turning into Super Sonic
+Sonic_JumpHeightEnd:
+	rts
 ; ---------------------------------------------------------------------------
 ; loc_1AB22:
 Sonic_UpVelCap:
-	;tst.b	pinball_mode(a0)	; is Sonic charging a spindash or in a rolling-only area?
-	;bne.s	return_1AB36		; if yes, return
-	;cmpi.w	#-$FC0,y_vel(a0)	; is Sonic moving up really fast?
-	;bge.s	return_1AB36		; if not, return
-	;move.w	#-$FC0,y_vel(a0)	; cap upward speed
+	tst.b	pinball_mode(a0)	; is Sonic charging a spindash or in a rolling-only area?
+	bne.s	return_1AB36		; if yes, return
+	cmpi.w	#-$FC0,y_vel(a0)	; is Sonic moving up really fast?
+	bge.s	return_1AB36		; if not, return
+	move.w	#-$FC0,y_vel(a0)	; cap upward speed
 
 return_1AB36:
 	rts
@@ -34810,8 +34813,11 @@ return_1AC3C:
 
 ; loc_1AC3E:
 Sonic_CheckSpindash:
+	btst	#2,(Golf_mode_status).w ; test golfmode override
+	beq.s	return_1AC8C ; if golfmode not overridden, skip this func
+
 	tst.b	spindash_flag(a0)
-	;bne.s	Sonic_UpdateSpindash
+	bne.s	Sonic_UpdateSpindash
 	cmpi.b	#AniIDSonAni_Duck,anim(a0)
 	bne.s	return_1AC8C
 	move.b	(Ctrl_1_Press_Logical).w,d0
