@@ -35682,7 +35682,7 @@ SAnim_WalkRun:
 	eor.b	d1,d2
 	or.b	d2,render_flags(a0)
 	btst	#5,status(a0)
-	;bne.w	SAnim_Push
+	bne.w	SAnim_Push
 	lsr.b	#4,d0		; divide angle by 16
 	andi.b	#6,d0		; angle must be 0, 2, 4 or 6
 	mvabs.w	inertia(a0),d2	; get Sonic's "speed" for animation purposes
@@ -46939,7 +46939,7 @@ loc_23CA0:
 	move.w	#0,inertia(a2)
 	move.w	#0,x_vel(a2)
 	move.w	#0,y_vel(a2)
-	;bclr	#5,status(a2)
+	bclr	#5,status(a2)
 	bclr	#high_priority_bit,art_tile(a2)
 	move.l	#-$96800,objoff_32(a0)
 	addq.b	#2,routine_secondary(a0)
