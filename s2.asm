@@ -4049,6 +4049,7 @@ TitleScreen_Loop:
 	or.b	(Ctrl_2_Press).w,d0
 	andi.b	#button_start_mask,d0
 	beq.w	TitleScreen_Loop ; loop until Start is pressed
+	move.w	#0,(Golf_swings_taken).w ; clear score
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	move.b	#3,(Life_count).w
 	move.b	#3,(Life_count_2P).w
@@ -6268,6 +6269,7 @@ SpecialStage:
 	bsr.w	Pal_FadeToWhite
 	tst.w	(Two_player_mode_copy).w
 	bne.s	loc_540C
+	move.w	#0,(Golf_swings_taken).w ; clear score
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	rts
 ; ===========================================================================
@@ -10228,6 +10230,7 @@ TwoPlayerResults:
 	bne.s	+			; if not, branch
 	addq.b	#1,(Current_Act).w	; go to the next act
 	move.b	#1,(Current_Act_2P).w
+	move.w	#0,(Golf_swings_taken).w ; clear score
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	move.b	#0,(Last_star_pole_hit).w
 	move.b	#0,(Last_star_pole_hit_2P).w
@@ -11291,6 +11294,7 @@ loc_8DF4:
 	bmi.s	loc_8E3A
 	move.w	d0,(Current_ZoneAndAct).w
 	move.w	#1,(Two_player_mode).w
+	move.w	#0,(Golf_swings_taken).w ; clear score
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	move.b	#0,(Last_star_pole_hit).w
 	move.b	#0,(Last_star_pole_hit_2P).w
@@ -11544,24 +11548,28 @@ OptionScreen_Select:
 	move.b	(Options_menu_box).w,d0
 	bne.s	OptionScreen_Select_Not1P
 	; Start a single player game
+OptionScreen_Start1P:
 	moveq	#0,d0
 	move.w	d0,(Two_player_mode).w
 	move.w	d0,(Two_player_mode_copy).w
 	move.w	d0,(Current_ZoneAndAct).w	; emerald_hill_zone_act_1
+	move.w	#0,(Golf_swings_taken).w ; clear score
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	rts
 ; ===========================================================================
 ; loc_90B6:
 OptionScreen_Select_Not1P:
-	subq.b	#1,d0
-	bne.s	OptionScreen_Select_Other
+; NOT FOR SNOLF!!
+	jmp OptionScreen_Start1P
+	;subq.b	#1,d0
+	;bne.s	OptionScreen_Select_Other
 	; Start a 2P VS game
-	moveq	#1,d0
-	move.w	d0,(Two_player_mode).w
-	move.w	d0,(Two_player_mode_copy).w
-	move.b	#GameModeID_2PLevelSelect,(Game_Mode).w ; => LevelSelectMenu2P
-	move.b	#0,(Current_Zone_2P).w
-	move.w	#0,(Player_mode).w
+	;moveq	#1,d0
+	;move.w	d0,(Two_player_mode).w
+	;move.w	d0,(Two_player_mode_copy).w
+	;move.b	#GameModeID_2PLevelSelect,(Game_Mode).w ; => LevelSelectMenu2P
+	;move.b	#0,(Current_Zone_2P).w
+	;move.w	#0,(Player_mode).w
 	rts
 ; ===========================================================================
 ; loc_90D8:
@@ -11643,7 +11651,7 @@ OptionScreen_Controls:
 ; word_917A:
 OptionScreen_Choices:
 	dc.l (3-1)<<24|(Player_option&$FFFFFF)
-	dc.l (2-1)<<24|(Two_player_items&$FFFFFF)
+	dc.l (4-1)<<24|(Two_player_items&$FFFFFF)
 	dc.l ($80-1)<<24|(Sound_test_sound&$FFFFFF)
 
 ; ||||||||||||||| S U B R O U T I N E |||||||||||||||||||||||||||||||||||||||
@@ -11775,7 +11783,8 @@ boxData macro txtlabel,vramAddr
     endm
 
 	boxData	TextOptScr_PlayerSelect,VRAM_Plane_A_Name_Table+planeLocH40(9,3)
-	boxData	TextOptScr_VsModeItems,VRAM_Plane_A_Name_Table+planeLocH40(9,11)
+	;boxData	TextOptScr_VsModeItems,VRAM_Plane_A_Name_Table+planeLocH40(9,11)
+	boxData	TextOptScr_GolfRules,VRAM_Plane_A_Name_Table+planeLocH40(9,11)
 	boxData	TextOptScr_SoundTest,VRAM_Plane_A_Name_Table+planeLocH40(9,19)
 
 off_92D2:
@@ -11787,8 +11796,13 @@ off_92DE:
 	dc.l TextOptScr_SonicAlone
 	dc.l TextOptScr_TailsAlone
 off_92EA:
-	dc.l TextOptScr_AllKindsItems
-	dc.l TextOptScr_TeleportOnly
+	;dc.l TextOptScr_AllKindsItems
+	;dc.l TextOptScr_TeleportOnly
+	dc.l TextOptScr_GolfAll
+	dc.l TextOptScr_GolfBounce
+	dc.l TextOptScr_GolfLives
+	dc.l TextOptScr_GolfNone
+
 off_92F2:
 	dc.l TextOptScr_0
 ; ===========================================================================
@@ -11953,6 +11967,7 @@ LevelSelect_Order:
 LevelSelect_StartZone:
 	andi.w	#$3FFF,d0
 	move.w	d0,(Current_ZoneAndAct).w
+	move.w	#0,(Golf_swings_taken).w ; clear score
 	move.b	#GameModeID_Level,(Game_Mode).w ; => Level (Zone play mode)
 	move.b	#3,(Life_count).w
 	move.b	#3,(Life_count_2P).w
@@ -12322,6 +12337,12 @@ TextOptScr_AllKindsItems:	menutxt	"ALL KINDS ITEMS"	; byte_983E:
 TextOptScr_TeleportOnly:	menutxt	"TELEPORT ONLY  "	; byte_984E:
 TextOptScr_SoundTest:		menutxt	"*  SOUND TEST   *"	; byte_985E:
 TextOptScr_0:			menutxt	"      00       "	; byte_9870:
+TextOptScr_GolfRules:		menutxt "* SNOLF OPTIONS *"
+TextOptScr_GolfAll:			menutxt "BOUNCE * LIVES "
+TextOptScr_GolfBounce:		menutxt "  BOUNCE ONLY  "
+TextOptScr_GolfLives:		menutxt "  LIVES ONLY   "
+TextOptScr_GolfNone:		menutxt "     NONE      "
+
 
 	charset ; reset character set
 
@@ -34273,6 +34294,22 @@ Sonic_BrakeRollingLeft:
 	rts
 ; End of subroutine Sonic_RollRight
 
+; --- BOUNCING SUBROUTINE
+; SNOLF CHECK!! bounce on, so rebound. else stop
+Golf_Bouncer:
+	cmpi.w	#0,(Two_player_items).w
+	beq.s	+
+	cmpi.w	#1,(Two_player_items).w
+	beq.s	+
+    move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+    jmp     GolfBouncerEnd
++
+	neg.w	x_vel(a0); GOLF
+	asr.w	#1,x_vel(a0); and half it
+	
+GolfBouncerEnd:
+    rts
+
 ; -----------------
 ; Subroutine for managing golf-input state.
 ; Here's how I think this is gonna work:
@@ -35170,17 +35207,15 @@ Sonic_DoLevelCollision:
 	tst.w	d1
 	bpl.s	+
 	sub.w	d1,x_pos(a0)
-	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
-	neg.w	x_vel(a0); GOLF - REBOUND BABY
-	asr.w	#1,x_vel(a0); and half it
+	; SNOLF CHECK!! bounce on, so rebound. else stop
+	jsr		Golf_Bouncer
 +
 	bsr.w	CheckRightWallDist
 	tst.w	d1
 	bpl.s	+
 	add.w	d1,x_pos(a0)
-	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
-	neg.w	x_vel(a0); GOLF - REBOUND BABY
-	asr.w	#1,x_vel(a0); and half it
+	; SNOLF CHECK!! bounce on, so rebound. else stop
+	jsr		Golf_Bouncer
 +
 	bsr.w	Sonic_CheckFloor
 	tst.w	d1
@@ -35215,9 +35250,8 @@ loc_1AF5A:
 ; ===========================================================================
 
 loc_1AF68:
-	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
-	neg.w	x_vel(a0); GOLF - REBOUND BABY
-	asr.w	#1,x_vel(a0); and half it
+	; SNOLF CHECK!! bounce on, so rebound. else stop
+	jsr		Golf_Bouncer
 	cmpi.w	#$FC0,y_vel(a0)
 	ble.s	loc_1AF7C
 	move.w	#$FC0,y_vel(a0)
@@ -35237,9 +35271,8 @@ Sonic_HitLeftWall:
 	tst.w	d1
 	bpl.s	Sonic_HitCeiling ; branch if distance is positive (not inside wall)
 	sub.w	d1,x_pos(a0)
-	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
-	neg.w	x_vel(a0); GOLF - REBOUND BABY
-	asr.w	#1,x_vel(a0); and half it
+	; SNOLF CHECK!! bounce on, so rebound. else stop
+	jsr		Golf_Bouncer
 	move.w	y_vel(a0),inertia(a0)
 	rts
 ; ===========================================================================
@@ -35278,17 +35311,15 @@ Sonic_HitCeilingAndWalls:
 	tst.w	d1
 	bpl.s	+
 	sub.w	d1,x_pos(a0)
-	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
-	neg.w	x_vel(a0); GOLF - REBOUND BABY
-	asr.w	#1,x_vel(a0); and half it
+	; SNOLF CHECK!! bounce on, so rebound. else stop
+	jsr		Golf_Bouncer
 +
 	bsr.w	CheckRightWallDist
 	tst.w	d1
 	bpl.s	+
 	add.w	d1,x_pos(a0)
-	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
-	neg.w	x_vel(a0); GOLF - REBOUND BABY
-	asr.w	#1,x_vel(a0); and half it
+	; SNOLF CHECK!! bounce on, so rebound. else stop
+	jsr		Golf_Bouncer
 +
 	bsr.w	Sonic_CheckCeiling
 	tst.w	d1
@@ -35319,9 +35350,8 @@ Sonic_HitRightWall:
 	tst.w	d1
 	bpl.s	Sonic_HitCeiling2
 	add.w	d1,x_pos(a0)
-	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
-	neg.w	x_vel(a0); GOLF - REBOUND BABY
-	asr.w	#1,x_vel(a0); and half it
+	; SNOLF CHECK!! bounce on, so rebound. else stop
+	jsr		Golf_Bouncer
 	move.w	y_vel(a0),inertia(a0)
 	rts
 ; ===========================================================================
@@ -35509,7 +35539,14 @@ CheckGameOver:
 	move.b	#8,routine(a0)	; => Obj01_Gone
 	move.w	#60,restart_countdown(a0)
 	addq.b	#1,(Update_HUD_lives).w	; update lives counter
+	; SNOLF CHECK!! if infinite lives is on, don't subtract
+	cmpi.w	#0,(Two_player_items).w
+	beq.s	+
+	cmpi.w	#2,(Two_player_items).w
+	beq.s	+
 	subq.b	#1,(Life_count).w	; subtract 1 from number of lives
++	
+	cmpi.w  #0,(Life_count).w ; check lives amt
 	bne.s	Obj01_ResetLevel	; if it's not a game over, branch
 	move.w	#0,restart_countdown(a0)
 	move.b	#ObjID_GameOver,(GameOver_GameText+id).w ; load Obj39 (game over text)
@@ -44558,7 +44595,7 @@ Obj14_UpdateMappingAndCollision:
 	move.b	width_pixels(a0),d1
 	moveq	#8,d3
 	move.w	(sp)+,d4
-	bra.w	SlopedPlatform
+	jsr	SlopedPlatform
 ; ===========================================================================
 
 return_21A74:

@@ -1464,7 +1464,7 @@ Update_HUD_score:		ds.b	1
 Golf_meter_x:			ds.w	1 ; 2 bytes
 Golf_meter_y:			ds.w	1 ; 2 bytes
 Golf_swings_taken:		ds.w	1 ; 2 bytes for sizing
-Golf_mode_status:			ds.w	1 ; 2 bytes; bit 0 = golf strike mode on/off, bit 1 = golf strike mode X/Y, bit 2 = golf mode override
+Golf_mode_status:			ds.w	1 ; 2 bytes; bit 0 = golf strike mode on/off, bit 1 = golf strike mode X/Y, bit 2 = golf mode override, bit 3 = is golf mode cheat on
 Golf_bar_posx:			ds.w	1; 2 bytes; golf bar pos stuff
 Golf_bar_posy:			ds.w	1; 2 bytes
 Golf_reset_timer:		ds.b	1; 1 byte
@@ -1606,7 +1606,7 @@ SlotMachine_Slot3Rout:	ds.b	1
 Player_mode:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 Player_option:			ds.w	1	; 0 = Sonic and Tails, 1 = Sonic, 2 = Tails
 
-Two_player_items:		ds.w	1
+Two_player_items:		ds.w	1 ; THIS IS USED BY SNOLF FOR SPECIAL RULES HANDLING
 				ds.b	$A	; $FFFFFF76-$FFFFFF7F ; seems unused
 
 LevSel_HoldTimer:		ds.w	1
