@@ -32065,7 +32065,7 @@ Load_EndOfAct:
 +
 	add.w	d0,d0
 	move.w	TimeBonuses(pc,d0.w),(Bonus_Countdown_1).w
-	move.w	(Ring_count).w,d0
+	move.w	(Ring_count).w,d0 ;;;; GOLF NOTE: this would be the ideal place for par calculation. like time, the lower the better. the screen already reads "SHOT BONUS" because of the shared "rings" graphics.
 	mulu.w	#$A,d0
 	move.w	d0,(Bonus_Countdown_2).w
 	clr.w	(Total_Bonus_Countdown).w
