@@ -4343,6 +4343,8 @@ Level_ClrRam:
 	; Bug: The '+C0' shouldn't be here; CNZ_saucer_data is only $40 bytes large
 	clearRAM CNZ_saucer_data,CNZ_saucer_data_End+$C0
 
+	; but what if EVERY level had water?????? HAH HAH HAAAAH
+	;jmp Level_InitWater
 	cmpi.w	#chemical_plant_zone_act_2,(Current_ZoneAndAct).w ; CPZ 2
 	beq.s	Level_InitWater
 	cmpi.b	#aquatic_ruin_zone,(Current_Zone).w ; ARZ
@@ -11559,11 +11561,10 @@ OptionScreen_Start1P:
 ; ===========================================================================
 ; loc_90B6:
 OptionScreen_Select_Not1P:
-; NOT FOR SNOLF!!
+	subq.b	#1,d0
+	bne.s	OptionScreen_Select_Other
+	; Start a 2P VS game ; NOT FOR SNOLF!!
 	jmp OptionScreen_Start1P
-	;subq.b	#1,d0
-	;bne.s	OptionScreen_Select_Other
-	; Start a 2P VS game
 	;moveq	#1,d0
 	;move.w	d0,(Two_player_mode).w
 	;move.w	d0,(Two_player_mode_copy).w
