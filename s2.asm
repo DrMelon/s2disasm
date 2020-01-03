@@ -25709,7 +25709,23 @@ loc_141E6:
 	add.w	d0,(Total_Bonus_Countdown).w
 	tst.w	d0
 	bne.s	loc_14256
-	move.w	#0,(Golf_swings_taken).w ; reset swing count
+	move.w	(Golf_swings_taken).w, d0
+	add.w   d0, (Golf_swings_total).w ; add swings taken to total.
+
+	; todo:
+	; remove "ring bonus" tally; is already replaced with "shot bonus" thanks to gfx.
+	; however, numeric display should show par and under/over for that stage.
+	; should also display total shots taken so far.
+
+	; maybe the whole tally screen should be replaced with options-screen text output, since that's a lot denser?
+	; can i even load that text? 
+
+	
+	
+
+
+
+	move.w	#0,(Golf_swings_taken).w ; reset swing count for next stage
 	move.w	#SndID_TallyEnd,d0
 	jsr	(PlaySound).l
 	addq.b	#2,routine(a0)

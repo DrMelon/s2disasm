@@ -1470,7 +1470,7 @@ Golf_bar_posy:			ds.w	1; 2 bytes
 Golf_reset_timer:		ds.b	1; 1 byte
 						ds.b	1; 
 Golf_accumulator:		ds.w	1; 2 bytes - to be used instead of timer_frames for golfin'
-
+Golf_swings_total:		ds.w	1; 2 bytes - swing total over whole game. hopefully nobody takes more than 65535 swings...
 
 Ring_count:			ds.w	1	; 2 bytes
 Timer:						; 4 bytes
@@ -1526,7 +1526,7 @@ Ring_spill_anim_frame:		ds.b	1
 Ring_spill_anim_accum:		ds.w	1
 				ds.b	6	; $FFFFFEA9-$FFFFFEAF ; seems unused, but cleared once
 Oscillating_variables_End
-				ds.b	$E	; $FFFFFEB0-$FFFFFEBF ; seems unused
+				ds.b	$C	; $FFFFFEB0-$FFFFFEBF ; seems unused
 
 ; values for the second player (some of these only apply to 2-player games)
 Tails_top_speed:		ds.w	1	; Tails_max_vel
