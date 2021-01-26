@@ -1,0 +1,26 @@
+Snolf: Tournament Edition Todo
+(Tournament Edition is a long-ways-off, possibly-final Snolf iteration that has way, way, way more polish than this hack would ever need. Maybe even custom level designs, who knows.)
+    ☐ Rewrite Snolf impl, cleaner. Use separate ASM files where possible. Usual suspects for overriding controls.
+    ☐ Utilise a mapper for storing additional snolf Stuff.
+    ☐ Add unique gfx for Shot Meter. Use Sonic Palette for safety. Load when show meter - slow, but guarantees position in sprite table. May scrunch boss sprites, so be careful. Max 4x assets..?
+        ☐ H-Bar Tiled Asset
+        ☐ H-Bar Pip
+        ☐ V-Bar Tiled Asset
+        ☐ V-Bar Pip
+        (Could make H-Bar and V-Bar background tiled assets have diagonal stripe pattern for use between both..?)
+    ☐ Add unique sounds for Shots?
+        ☐ FM SFX for selection and firing
+        ☐ PCM SFX for "Nice on!", cheering crowd on max-power shot. Polite clapping on stage end.
+    ☐ Max-power shot has sparkles.
+    ☐ Add shot-type select. Normal Shot, Topspin Shot (dropdash, basically), Bouncer Shot (chaos, chaos)
+    ☐ Add shot-type code, likely using a bitflag or status int
+    ☐ Add v-first shot mode. Maybe controls like A: Shot Type, B: H-Shot, C: V-Shot. 
+    ☐ Add "meters" display when flying. Somehow summon & render debug font..? 
+    ☐ Nicer teleport effect; spawn sparkles/stars, make snolf invis, insta-move cam?
+    ☐ Par for each act of each zone. Diff the par at the end of an act.
+    ☐ Remove old tally screen - add current running total, show score screen (like a normal golf scoresheet)
+    ☐ Completely redo title screen? Mmmmaybe..!
+    ☐ Change 2p mode to turn-based hotseat. Up to 4 players, store off all their positions & shot counts somewhere. Display on tally screen at end of level. Include level/act select. Alt palettes for each player?
+    ☐ Replace signpost & egg capsule with Golf Hole. Feasability of this might be tough; would have to do some visual jank to get snolf to disappear """down""" the hole.
+    ☐ SFX for golf hole (golf hole noise.)
+    ☐ Reject from golf hole if moving too fast >:)

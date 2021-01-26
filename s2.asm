@@ -34227,6 +34227,7 @@ Sonic_GolfMeter:
 	btst	#2,(Golf_mode_status).w ; test golfmode override
 	bne.w	SkipGolf ; if golfmode overridden, skip this func
 
+
 	addi.w, #1,(Golf_accumulator).w ;; increment golf accumulator. do we need to worry about overflow?
 	cmpi.w, #512,(Golf_accumulator).w ; reset after it hits 512 anyways (should be enough for a full sinewave?)
 	blo.s +
@@ -34332,6 +34333,7 @@ SkipGolf:
 
 GolfSwing:
 	bclr	#0,(Golf_mode_status).w ; strike mode cleared! 
+	
 
 	; set x veloc, set y veloc, set rolling/jumping
 	move.w	(Golf_meter_y).w,y_vel(a0)
@@ -34341,6 +34343,7 @@ GolfSwing:
 	bclr	#1,(Golf_mode_status).w ; reset X/Y of strike mode
 	; increment the number of swings taken on this act
 	addi.w	#1,(Golf_swings_taken).w;
+	addi.w 	#1,(Golf_did_just_swing).w ; hit that ball!
 
 	; play sound
 	move.w	#SndID_CNZLaunch,d0 ;   maybe set noise based on strength of hit? monitor pop, thoomp, spring...
