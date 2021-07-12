@@ -250,6 +250,7 @@ Snolf_ResetOnFloor_Part3:
 	move.b	#0,jumping(a0)
 	bclr	#4,status(a0)
 	bclr	#5,status(a0)
+	bclr	#2,status(a0)
 	move.w	#0,(Chain_Bonus_counter).w
 	move.b	#0,flip_angle(a0)
 	move.b	#0,flip_turned(a0)
