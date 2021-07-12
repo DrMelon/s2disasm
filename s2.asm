@@ -4045,6 +4045,7 @@ TitleScreen_Loop:
 	moveq	#0,d0
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
+	move.l  d0,(SNOLF_Swings_Taken).w ; SNOLF - Reset Swing Count for this stage.
 	move.l	d0,(Score).w
 	move.w	d0,(Ring_count_2P).w
 	move.l	d0,(Timer_2P).w
@@ -4127,6 +4128,7 @@ TitleScreen_Demo:
 	moveq	#0,d0
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
+	move.l  d0,(SNOLF_Swings_Taken).w ; SNOLF - Reset Swing Count for this stage.
 	move.l	d0,(Score).w
 	move.w	d0,(Ring_count_2P).w
 	move.l	d0,(Timer_2P).w
@@ -4488,6 +4490,7 @@ Level_ClrHUD:
 	bne.s	Level_FromCheckpoint	; if yes, branch
 	move.w	d0,(Ring_count).w	; clear rings
 	move.l	d0,(Timer).w		; clear time
+	move.l  d0,(SNOLF_Swings_Taken).w ; SNOLF - Reset Swing Count for this stage.
 	move.b	d0,(Extra_life_flags).w	; clear extra lives counter
 	move.w	d0,(Ring_count_2P).w	; ditto for player 2
 	move.l	d0,(Timer_2P).w
@@ -4682,6 +4685,7 @@ Level_SetPlayerMode:
 
 ; sub_446E:
 InitPlayers:
+	move.w #0,(SNOLF_Force_Allow).w ; Clear force-allow on player setup
 	move.w	(Player_mode).w,d0
 	bne.s	InitPlayers_Alone ; branch if this isn't a Sonic and Tails game
 
@@ -9821,6 +9825,7 @@ ContinueScreen:
 	moveq	#0,d0
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
+	move.l  d0,(SNOLF_Swings_Taken).w ; SNOLF - Reset Swing Count for this stage.
 	move.l	d0,(Score).w
 	move.b	d0,(Last_star_pole_hit).w
 	move.w	d0,(Ring_count_2P).w
@@ -11947,6 +11952,7 @@ LevelSelect_StartZone:
 	moveq	#0,d0
 	move.w	d0,(Ring_count).w
 	move.l	d0,(Timer).w
+	move.l  d0,(SNOLF_Swings_Taken).w ; SNOLF - Reset Swing Count for this stage.
 	move.l	d0,(Score).w
 	move.w	d0,(Ring_count_2P).w
 	move.l	d0,(Timer_2P).w
@@ -32075,6 +32081,10 @@ Load_EndOfAct:
 	move.w	#MusID_EndLevel,d0
 	jsr	(PlayMusic).l
 
+	; SNOLF: End of level, so add to the swing total.
+	move.w (SNOLF_Swings_Taken).w,d0
+	addi.w d0,(SNOLF_Swings_Total).w
+
 return_194D0:
 	rts
 ; ===========================================================================
@@ -33265,6 +33275,18 @@ Obj01_Control:
 	andi.w	#6,d0	; %0000 %0110
 	move.w	Obj01_Modes(pc,d0.w),d1
 	jsr	Obj01_Modes(pc,d1.w)	; run Sonic's movement control code
+
+	;.d8888. d8b   db  .d88b.  db      d88888b 
+	;88'  YP 888o  88 .8P  Y8. 88      88'     
+	;`8bo.   88V8o 88 88    88 88      88ooo   
+  	;  `Y8b. 88 V8o88 88    88 88      88~~~   
+	;db   8D 88  V888 `8b  d8' 88booo. 88      
+	;`8888Y' VP   V8P  `Y88P'  Y88888P YP      
+
+	; This is the main entry point for Snolf code; this is what takes control of Sonic and transforms him into Snolf.
+	jsr SnolfMain
+
+
 +
 	cmpi.w	#-$100,(Camera_Min_Y_pos).w	; is vertical wrapping enabled?
 	bne.s	+				; if not, branch
@@ -33486,10 +33508,21 @@ Obj01_MdNormal_Checks:
 ; ---------------------------------------------------------------------------
 ; loc_1A2B8:
 Obj01_MdNormal:
+	; SNOLF - We want to skip spindashing and jump controls if we're snolfing.
+	; To allow cutscenes to work properly, we'll only skip these functions if the controller is locked out from the player.
+	tst.b (Control_Locked).w
+	beq.s +
 	bsr.w	Sonic_CheckSpindash
 	bsr.w	Sonic_Jump
++
 	bsr.w	Sonic_SlopeResist
+
+	; SNOLF - We want to skip "Sonic_Move" if we're snolfing; we have no need for legs. Only rolling.
+	; To allow cutscenes to work properly, we'll only skip these functions if the controller is locked out from the player.
+	tst.b (Control_Locked).w
+	beq.s +
 	bsr.w	Sonic_Move
++
 	bsr.w	Sonic_Roll
 	bsr.w	Sonic_LevelBound
 	jsr	(ObjectMove).l
@@ -34042,6 +34075,11 @@ Sonic_ApplyRollSpeedLeft:
 
 ; loc_1A81E:
 Sonic_CheckRollStop:
+	;SNOLF - This code checks to see if the player is rolling slowly enough for them to uncurl.
+	;However, Snolf is a ball. And does not uncurl.
+	; To allow cutscenes to work properly, we'll only skip these functions if the controller is locked out from the player.
+	tst.b (Control_Locked).w
+	beq.s Obj01_Roll_ResetScr
 	tst.w	inertia(a0)
 	bne.s	Obj01_Roll_ResetScr
 	tst.b	pinball_mode(a0) ; note: the spindash flag has a different meaning when Sonic's already rolling -- it's used to mean he's not allowed to stop rolling
@@ -34151,6 +34189,17 @@ Sonic_ChgJumpDir:
 	move.w	(Sonic_top_speed).w,d6
 	move.w	(Sonic_acceleration).w,d5
 	asl.w	#1,d5
+
+	; SNOLF - This area of code is what allows sonic to control his jump midair.
+	; It contains code that stops you from controlling the jump if you jumped from a rolled-up state.
+	; Snolf's "jump" is by definition uncontrollable midair all the time.
+	; But we should only override this behaviour if we're outside of a cutscene.
+	tst.b (Control_Locked).w
+	bne.s + 
+	; Here we check to see if Snolf is in ball form at all.
+	btst	#2,status(a0) 
+	bne.s 	Obj01_Jump_ResetScr ; And if he is, we skip the control function.
++
 	btst	#4,status(a0)		; did Sonic jump from rolling?
 	bne.s	Obj01_Jump_ResetScr	; if yes, branch to skip midair control
 	move.w	x_vel(a0),d0
@@ -34271,6 +34320,10 @@ Sonic_Boundary_Sides:
 
 ; loc_1A9D2:
 Sonic_Roll:
+	; SNOLF - Here's some more code that unrolls the player.
+	; We override this behaviour if we're outside of a cutscene.
+	tst.b (Control_Locked).w
+	beq.s Obj01_ChkRoll ; Skip the function.
     if status_sec_isSliding = 7
 	tst.b	status_secondary(a0)
 	bmi.s	Obj01_NoRoll
@@ -34305,8 +34358,18 @@ Obj01_DoRoll:
 	move.b	#7,x_radius(a0)
 	move.b	#AniIDSonAni_Roll,anim(a0)	; use "rolling" animation
 	addq.w	#5,y_pos(a0)
-	move.w	#SndID_Roll,d0
-	jsr	(PlaySound).l	; play rolling sound
+
+	; SNOLF - Let's not play the rolling sound every time we roll.
+	; It gets really annoying after a while.
+	;move.w	#SndID_Roll,d0
+	;jsr	(PlaySound).l	; play rolling sound
+
+	; SNOLF - The following code forces the player to keep rolling if their inertia is below a certain value.
+	; This is what lets the player get out of tight spaces in "pinball" mode; you've probably seen it in Casino Night.
+	; The player is given extra velocity bumps every so often and it nudges them along.
+	; We don't want this in Snolf, otherwise we'd never be able to tee off - Snolf would just roll on forever.
+	tst.b (Control_Locked).w
+	beq.s return_1AA36
 	tst.w	inertia(a0)
 	bne.s	return_1AA36
 	move.w	#$200,inertia(a0)
@@ -34324,6 +34387,9 @@ return_1AA36:
 
 ; loc_1AA38:
 Sonic_Jump:
+	; SNOLF - Here's the code that lets sonic jump. We prevent this running in Snolf mode.
+	tst.b (Control_Locked).w
+	beq.w return_1AAE6
 	move.b	(Ctrl_1_Press_Logical).w,d0
 	andi.b	#button_B_mask|button_C_mask|button_A_mask,d0 ; is A, B or C pressed?
 	beq.w	return_1AAE6	; if not, return
@@ -34389,6 +34455,10 @@ Sonic_RollJump:
 ; ===========================================================================
 ; loc_1AAF0:
 Sonic_JumpHeight:
+	; SNOLF - This code prevents the player's vertical air speed from exceeding a certain upwards value.
+	; However, we want MAXIMUM POWER on our snolf swings. 
+	tst.b	(Control_Locked).w
+	beq.s 	Sonic_JumpHeightEnd
 	tst.b	jumping(a0)	; is Sonic jumping?
 	beq.s	Sonic_UpVelCap	; if not, branch
 
@@ -34406,6 +34476,7 @@ Sonic_JumpHeight:
 +
 	tst.b	y_vel(a0)		; is Sonic exactly at the height of his jump?
 	beq.s	Sonic_CheckGoSuper	; if yes, test for turning into Super Sonic
+Sonic_JumpHeightEnd:
 	rts
 ; ---------------------------------------------------------------------------
 ; loc_1AB22:
@@ -34520,6 +34591,9 @@ return_1AC3C:
 
 ; loc_1AC3E:
 Sonic_CheckSpindash:
+	; SNOLF - Here's the code that allows spindashing to take place. We have no place for it here.
+	tst.b (Control_Locked).w
+	beq.s return_1AC8C
 	tst.b	spindash_flag(a0)
 	bne.s	Sonic_UpdateSpindash
 	cmpi.b	#AniIDSonAni_Duck,anim(a0)
@@ -34857,13 +34931,17 @@ Sonic_DoLevelCollision:
 	tst.w	d1
 	bpl.s	+
 	sub.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;SNOLF - Let's do the wall-bounce!
+	jsr SnolfBounceHoriz
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
 +
 	bsr.w	CheckRightWallDist
 	tst.w	d1
 	bpl.s	+
 	add.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;SNOLF - Let's do the wall-bounce!
+	jsr SnolfBounceHoriz
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
 +
 	bsr.w	Sonic_CheckFloor
 	tst.w	d1
@@ -34892,13 +34970,17 @@ Sonic_DoLevelCollision:
 ; ===========================================================================
 
 loc_1AF5A:
-	move.w	#0,y_vel(a0)
+	; SNOLF - Let's do the floor-bounce!
+	jsr SnolfBounceVert
+	;move.w	#0,y_vel(a0)
 	move.w	x_vel(a0),inertia(a0)
 	rts
 ; ===========================================================================
 
 loc_1AF68:
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;SNOLF - Let's do the wall-bounce!
+	jsr SnolfBounceHoriz
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
 	cmpi.w	#$FC0,y_vel(a0)
 	ble.s	loc_1AF7C
 	move.w	#$FC0,y_vel(a0)
@@ -34918,7 +35000,9 @@ Sonic_HitLeftWall:
 	tst.w	d1
 	bpl.s	Sonic_HitCeiling ; branch if distance is positive (not inside wall)
 	sub.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	;SNOLF - Let's do the wall-bounce!
+	jsr SnolfBounceHoriz
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
 	move.w	y_vel(a0),inertia(a0)
 	rts
 ; ===========================================================================
@@ -34930,7 +35014,9 @@ Sonic_HitCeiling:
 	sub.w	d1,y_pos(a0)
 	tst.w	y_vel(a0)
 	bpl.s	return_1AFBE
-	move.w	#0,y_vel(a0) ; stop Sonic in y since he hit a ceiling
+	;SNOLF - Let's do the ceiling-bounce!
+	jsr SnolfBounceVert
+	;move.w	#0,y_vel(a0) ; stop Sonic in y since he hit a ceiling
 
 return_1AFBE:
 	rts
@@ -34945,7 +35031,9 @@ Sonic_HitFloor:
 	add.w	d1,y_pos(a0)
 	move.b	d3,angle(a0)
 	bsr.w	Sonic_ResetOnFloor
-	move.w	#0,y_vel(a0)
+	;SNOLF - Let's do the floor-bounce!
+	jsr SnolfBounceVert
+	;move.w	#0,y_vel(a0)
 	move.w	x_vel(a0),inertia(a0)
 
 return_1AFE6:
@@ -34957,13 +35045,17 @@ Sonic_HitCeilingAndWalls:
 	tst.w	d1
 	bpl.s	+
 	sub.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0)	; stop Sonic since he hit a wall
+	;SNOLF - Let's do the wall-bounce!
+	jsr SnolfBounceHoriz
+	;move.w	#0,x_vel(a0)	; stop Sonic since he hit a wall
 +
 	bsr.w	CheckRightWallDist
 	tst.w	d1
 	bpl.s	+
 	add.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0)	; stop Sonic since he hit a wall
+	;SNOLF - Let's do the wall-bounce!
+	jsr SnolfBounceHoriz
+	;move.w	#0,x_vel(a0)	; stop Sonic since he hit a wall
 +
 	bsr.w	Sonic_CheckCeiling
 	tst.w	d1
@@ -34973,6 +35065,8 @@ Sonic_HitCeilingAndWalls:
 	addi.b	#$20,d0
 	andi.b	#$40,d0
 	bne.s	loc_1B02C
+	;SNOLF - Let's do the ceiling-bounce!
+	jsr SnolfBounceVert
 	move.w	#0,y_vel(a0) ; stop Sonic in y since he hit a ceiling
 	rts
 ; ===========================================================================
@@ -34994,7 +35088,10 @@ Sonic_HitRightWall:
 	tst.w	d1
 	bpl.s	Sonic_HitCeiling2
 	add.w	d1,x_pos(a0)
-	move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
+	
+	;SNOLF - Let's do the wall-bounce!
+	jsr SnolfBounceHoriz
+	;move.w	#0,x_vel(a0) ; stop Sonic since he hit a wall
 	move.w	y_vel(a0),inertia(a0)
 	rts
 ; ===========================================================================
@@ -35007,6 +35104,9 @@ Sonic_HitCeiling2:
 	sub.w	d1,y_pos(a0)
 	tst.w	y_vel(a0)
 	bpl.s	return_1B076
+	
+	;SNOLF - Let's do the ceiling-bounce!
+	jsr SnolfBounceVert
 	move.w	#0,y_vel(a0) ; stop Sonic in y since he hit a ceiling
 
 return_1B076:
@@ -35023,7 +35123,10 @@ Sonic_HitFloor2:
 	add.w	d1,y_pos(a0)
 	move.b	d3,angle(a0)
 	bsr.w	Sonic_ResetOnFloor
-	move.w	#0,y_vel(a0)
+	
+	;SNOLF - Let's do the floor-bounce!
+	jsr SnolfBounceVert
+	;move.w	#0,y_vel(a0)
 	move.w	x_vel(a0),inertia(a0)
 
 return_1B09E:
@@ -35040,6 +35143,10 @@ return_1B09E:
 
 ; loc_1B0A0:
 Sonic_ResetOnFloor:
+	; SNOLF - This code is responsible for handling what happens when Sonic touches the ground.
+	; In order to support vertical bouncing, we need to do some significant changes to this code, so we're basically cloning the function.
+	tst.b (Control_Locked).w
+	beq.w Snolf_ResetOnFloor
 	tst.b	pinball_mode(a0)
 	bne.s	Sonic_ResetOnFloor_Part3
 	move.b	#AniIDSonAni_Walk,anim(a0)
@@ -35074,6 +35181,8 @@ Sonic_ResetOnFloor_Part3:
 
 return_1B11E:
 	rts
+
+
 
 ; ===========================================================================
 ; ---------------------------------------------------------------------------
@@ -35179,7 +35288,8 @@ CheckGameOver:
 	move.b	#8,routine(a0)	; => Obj01_Gone
 	move.w	#60,restart_countdown(a0)
 	addq.b	#1,(Update_HUD_lives).w	; update lives counter
-	subq.b	#1,(Life_count).w	; subtract 1 from number of lives
+	; SNOLF - Infinite Lives!
+	;subq.b	#1,(Life_count).w	; subtract 1 from number of lives
 	bne.s	Obj01_ResetLevel	; if it's not a game over, branch
 	move.w	#0,restart_countdown(a0)
 	move.b	#ObjID_GameOver,(GameOver_GameText+id).w ; load Obj39 (game over text)
@@ -44228,7 +44338,7 @@ Obj14_UpdateMappingAndCollision:
 	move.b	width_pixels(a0),d1
 	moveq	#8,d3
 	move.w	(sp)+,d4
-	bra.w	SlopedPlatform
+	jsr	SlopedPlatform
 ; ===========================================================================
 
 return_21A74:
@@ -84246,7 +84356,9 @@ loc_40DC6:
 	clr.b	(Update_HUD_rings).w
 	move.l	#vdpComm(tiles_to_bytes(ArtTile_HUD_Rings),VRAM,WRITE),d0
 	moveq	#0,d1
-	move.w	(Ring_count).w,d1
+	; SNOLF: Instead of displaying the ring count, we display the Shot count.
+	move.w (SNOLF_Swings_Taken).w,d1
+	;move.w	(Ring_count).w,d1
 	bsr.w	Hud_Rings
 ; loc_40DDA:
 Hud_ChkTime:

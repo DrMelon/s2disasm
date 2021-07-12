@@ -58,7 +58,7 @@ SnolfResetUnpressed:
 SnolfCheckForSwing:
     ; Check to see if A, B, or C have been pressed.
 	move.b 	(Ctrl_1_Press).w,d0 
-	andi.b	#button_B|button_A|button_C,d0 
+	andi.b	#button_B_mask|button_A_mask|button_C_mask,d0 
 	bne.w	SnolfSwingPressed ; If they have been pressed, jump to the logic that handles a press.
 
 SnolfSwingNotPressed:
@@ -198,7 +198,63 @@ SnolfSwing:
 ; Horizontal Bouncing Subroutine; this is used whenever Snolf collides with a wall! 
 ; It's what gives him his rubbery, bouncy ball energy.
 SnolfBounceHoriz:
+	btst #0,(SNOLF_Bounce_Flag).w ;Is bouncing enabled?
+	bne.s + ; If bouncing is disabled, stop Snolf from moving instead. 
+	btst #1,(SNOLF_Bounce_Flag).w ;Is horizontal bouncing enabled?
+	bne.s + ; If horizontal bouncing is disabled, stop Snolf from moving instead.
 	neg.w	x_vel(a0); Negate the X velocity,
 	asr.w	#1,x_vel(a0); and half it! 
+	jmp SnolfBounceHorizEnd
++
+	; Stop snolf from bouncing.
+	move.w #0,x_vel(a0)
 SnolfBounceHorizEnd:
     rts
+
+; ------ New for T.E; Vertical Snolf Bounces! Oh yes.
+SnolfBounceVert:
+	btst #0,(SNOLF_Bounce_Flag).w ;Is bouncing enabled?
+	bne.s + ; If bouncing is disabled, stop Snolf from moving instead. 
+	btst #2,(SNOLF_Bounce_Flag).w ;Is vertical bouncing enabled?
+	beq.s + ; If vertical bouncing is disabled, stop Snolf from moving instead.
+	neg.w	y_vel(a0); Negate the X velocity,
+	asr.w	#1,y_vel(a0); and half it! 
+	jmp SnolfBounceVertEnd
++
+	; Stop snolf from bouncing.
+	move.w #0,y_vel(a0)
+SnolfBounceVertEnd:
+	rts
+
+
+; This is essentially a clone of Sonic_ResetOnFloor, but we'll do a bunch of weird stuff 
+; in order to make vertical bounces work.
+Snolf_ResetOnFloor:
+	; First, we no longer care about pinball mode. 
+	; Snolf will always remain in ball form.
+	; Also, there's normally a bunch of code here that clears the rolling flag and resets to the walk animation.
+	; We won't be clearing that flag.
+
+	; All that leaves is "Part 3", which clears the in-air status and other things.
+	; We don't want to clear in-air/jumping status *if* the y velocity is greater than a threshold amount in vert bounce mode.
+Snolf_ResetOnFloor_Part3:
+
+	btst #2,(SNOLF_Bounce_Flag).w ;Is vertical bouncing enabled?
+	beq.s + ; If vertical bouncing is disabled, we skip the bounce check
+	; Next, we test to see if y velocity is above our threshold. If it is, we allow the bounce.
+	move.w  y_vel(a0),d0
+	cmpi.w  #$0100,d0
+	bgt.s Snolf_ResetOnFloorEnd ; Boing! 
++
+	bclr	#1,status(a0)
+	move.b	#0,jumping(a0)
+	bclr	#4,status(a0)
+	bclr	#5,status(a0)
+	move.w	#0,(Chain_Bonus_counter).w
+	move.b	#0,flip_angle(a0)
+	move.b	#0,flip_turned(a0)
+	move.b	#0,flips_remaining(a0)
+	move.w	#0,(Sonic_Look_delay_counter).w
+
+Snolf_ResetOnFloorEnd:
+	rts

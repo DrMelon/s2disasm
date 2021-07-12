@@ -1197,7 +1197,7 @@ Underwater_palette_line4:	ds.b palette_line_size
 ; This is the perfect place to insert SNOLF variables. So many bytes here to use. 
 	include "snolf_variables.asm"
 
-				ds.b	$4E8	; resized!
+				ds.b	$4E6	; resized!
 				;ds.b	$500	; $FFFFF100-$FFFFF5FF ; unused, leftover from the Sonic 1 sound driver (and used by it when you port it to Sonic 2)
 
 Game_Mode:			ds.w	1	; 1 byte ; see GameModesArray (master level trigger, Mstr_Lvl_Trigger)
