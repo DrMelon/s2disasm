@@ -23486,8 +23486,8 @@ JmpTo4_CalcSine
 	align 4
     endif
 
-
-
+; SNOLF: Load Objects
+	include "snolf_objects.asm"
 
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
@@ -27726,6 +27726,9 @@ ObjPtr_ContinueText:
 ObjPtr_ContinueIcons:	dc.l ObjDA	; Continue text
 ObjPtr_ContinueChars:	dc.l ObjDB	; Sonic lying down or Tails nagging (continue screen)
 ObjPtr_RingPrize:	dc.l ObjDC	; Ring prize from Casino Night Zone
+
+; SNOLF Object pointers.
+	include "snolf_object_pointers.asm"
 ; ===========================================================================
 ; ----------------------------------------------------------------------------
 ; Object 4C, 4D, 4E, 4F, 62, D0, and D1
@@ -33549,6 +33552,10 @@ Obj01_MdJump:
 	bsr.w	Sonic_DoLevelCollision
 	rts
 ; End of subroutine Obj01_MdJump
+
+
+; SNOLF: Include our new snolf code.
+	include "snolf.asm"
 
 ; ---------------------------------------------------------------------------
 ; Subroutine to make Sonic walk/run

@@ -4,7 +4,7 @@
 
 ; -- Snolf Main Function
 SnolfMain:
-	tst.b (f_lockctrl).w ; Ensure that the controls are not locked (e.g, Snolf is in a cutscene.)
+	tst.b (Control_Locked).w ; Ensure that the controls are not locked (e.g, Snolf is in a cutscene.)
 	bne.w	SkipSnolf ; If they are locked, skip Snolf logic.
 
     ; Accumulator & Flag logic.
@@ -15,7 +15,7 @@ SnolfMain:
 	move.w, #0,(SNOLF_Accumulator).w
 +
 	; Input Checking - is the player holding the A button to reset the shot?
-	btst #bitA,(v_jpadhold1).w
+	btst #button_A,(Ctrl_1_Held).w
 	beq.s SnolfResetUnpressed ; If they are not holding the button, skip the following logic.
 	
     ; Make the Reset Timer tick down.
@@ -34,18 +34,18 @@ SnolfResetBall:
     ; Set Snolf's X and Y positions to the Shot Position.
     ; This moves him back to where the last shot was taken.
     move.w (SNOLF_Shot_PosX).w,d0
-	move.w	d0,obX(a0)
+	move.w	d0,x_pos(a0)
 	move.w	(SNOLF_Shot_PosY).w,d0
-    move.w  d0,obY(a0)
+    move.w  d0,y_pos(a0)
 
     ; Stop Snolf's Velocity & Inertia/Groundspeed. This stops him moving away after a reset.
-	move.w	#0,obVelX(a0)
-	move.w	#0,obVelY(a0)
-	move.w	#0,obInertia(a0)
+	move.w	#0,x_vel(a0)
+	move.w	#0,y_vel(a0)
+	move.w	#0,inertia(a0)
 
     ; Play a cool and funky noise when we teleport back!
-	move.w	#sfx_Teleport,d0 
-	jsr	(PlaySound_Special).l
+	move.w	#SndID_Teleport,d0 
+	jsr	(PlaySound).l
 
 	rts
 
@@ -57,16 +57,16 @@ SnolfResetUnpressed:
 
 SnolfCheckForSwing:
     ; Check to see if A, B, or C have been pressed.
-	move.b 	(v_jpadpress1).w,d0 
-	andi.b	#btnB|btnA|btnC,d0 
+	move.b 	(Ctrl_1_Press).w,d0 
+	andi.b	#button_B|button_A|button_C,d0 
 	bne.w	SnolfSwingPressed ; If they have been pressed, jump to the logic that handles a press.
 
 SnolfSwingNotPressed:
     ; This runs when no swing button is pressed. 
 	btst	#0,(SNOLF_StateFlag).w ; Which state are we in? Bit 0 of the state flag tells us if we have begun a swing or not.
 	beq.w	SkipSnolf ; If we have not begun a swing yet, skip the following logic,
-	move.w	obX(a0),(SNOLF_Shot_PosX).w ; Store Snolf's current world position (so that we can reset later.)
-	move.w	obY(a0),(SNOLF_Shot_PosY).w
+	move.w	x_pos(a0),(SNOLF_Shot_PosX).w ; Store Snolf's current world position (so that we can reset later.)
+	move.w	y_pos(a0),(SNOLF_Shot_PosY).w
 	move.w	(SNOLF_Accumulator).w,d0 ; Calculate the Sine of our accumulator timer so that we can get that smooth side-to-side / up-and-down motion.
 	jsr		(CalcSine).l ; The CalcSine function puts the Sine into d0 and the Cosine into d1. This is important!
 	btst	#1,(SNOLF_StateFlag).w ; Bit 1 of the state flag tells us if we are doing the horizontal or the vertical part of the swing.
@@ -95,7 +95,7 @@ SkipSnolf:
 
 SnolfSwingPressed:
     ; If you pressed a button during the main button check, this is where you end up.
-	move.w	obInertia(a0),d0 ; We can't start a swing if Snolf is moving along the ground...
+	move.w	inertia(a0),d0 ; We can't start a swing if Snolf is moving along the ground...
 	cmpi.w  #1,(SNOLF_Force_Allow).w ; ... with the exception that if either the Force_Allow or Force_Next variables are set, we can!
 	beq.s SnolfStartSwing
 	cmpi.w  #1,(SNOLF_Force_Next).w
@@ -118,24 +118,24 @@ SnolfStartSwing:
 
     ; But if the player is facing left, we actually want to add 127 to it - to move the meter a quarter through its cycle.
     ; That puts it in the neutral position heading left!
-	btst	#0,obStatus(a0)
+	btst	#0,status(a0)
 	beq.w	SnolfSkipAccumLeft
 	move.w	#127,(SNOLF_Accumulator).w
 
 SnolfSkipAccumLeft:
 	; Since we're beginning a swing, we want to spawn the "Pip".
     ; The "pip" is the bit of the meter that moves around.
-    bsr.w	FindFreeObj
-	_move.b	#id_SnolfMeterPip,(a1) ; Load the Pip object.
+    bsr.w	SingleObjLoad
+	move.b	#ObjID_SnolfMeterPip,id(a1) ; Load the Pip object.
 
 	; We also want to spawn the "Meter". This is the part of the meter
     ; that does *not* move around.
-    bsr.w	FindFreeObj
-	_move.b	#id_SnolfMeterH,(a1) ; Load the Meter object.
+    bsr.w	SingleObjLoad
+	move.b	#ObjID_SnolfMeterH,id(a1) ; Load the Meter object.
 
     ; Play a sound effect to confirm the player's action.
-	move.w	#sfx_Fireball,d0
-	jsr	(PlaySound_Special).l
+	move.w	#SndID_Blip,d0
+	jsr	(PlaySound).l
 	jmp 	SnolfSwingNotPressed
 
 SnolfAdvanceSwing:
@@ -145,8 +145,8 @@ SnolfAdvanceSwing:
 	bne.s	SnolfSwing ; Launch!
 
     ; Play a sound to confirm the player's action.
-	move.w	#sfx_Fireball,d0 
-	jsr	(PlaySound_Special).l
+	move.w	#SndID_Blip,d0 
+	jsr	(PlaySound).l
 	
     ; We reset the accumulator again for the vertical stage. 
     ; It's reset to 127 as that's the bottom-most point of the cycle, so it rises up.
@@ -163,15 +163,15 @@ SnolfSwing:
 	move.w  #0,(SNOLF_Force_Next).w ; If the Force_Next flag was set, we clear it, as it is only temporary.
 
 	; Set Snolf's X and Y velocity to be the meter's given strength.
-	move.w	(SNOLF_Meter_Y).w,obVelY(a0)
-	move.w	(SNOLF_Meter_X).w,obVelX(a0)
+	move.w	(SNOLF_Meter_Y).w,y_vel(a0)
+	move.w	(SNOLF_Meter_X).w,x_vel(a0)
 
     ; We also force Snolf's inertia value up. This has a knock-on effect that helps the game understand that he's moving fast, and 
     ; releases him from certain platforms etc.
-	move.w	#$400,obInertia(a0)
+	move.w	#$400,inertia(a0)
 
     ; We force Snolf into a "jumping" state. Again, helping the game understand that he should now be airborne.
-	bset	#1,obStatus(a0)
+	bset	#1,status(a0)
 
     ; Reset horizontal/vertical mode.
 	bclr	#1,(SNOLF_StateFlag).w
@@ -183,12 +183,12 @@ SnolfSwing:
 	move.w 	#1,(SNOLF_Just_Swung).w
 
 	; Play a cool launching soundeffect.
-    move.w	#sfx_Basaran,d0
-	jsr	(PlaySound_Special).l
+    move.w	#SndID_SpindashRelease,d0
+	jsr	(PlaySound).l
 
     ; Tell the HUD it needs to update the count.
     ; It doesn't update every frame, because it would be a waste of processing time to keep rendering the same number when it hasn't changed.
-	ori.b 	#1,(f_ringcount).w
+	ori.b 	#1,(Update_HUD_rings).w
 
     ; End our snolfing journey.
 	jmp		SnolfSwingNotPressed
@@ -198,7 +198,7 @@ SnolfSwing:
 ; Horizontal Bouncing Subroutine; this is used whenever Snolf collides with a wall! 
 ; It's what gives him his rubbery, bouncy ball energy.
 SnolfBounceHoriz:
-	neg.w	obVelX(a0); Negate the X velocity,
-	asr.w	#1,obVelX(a0); and half it! 
+	neg.w	x_vel(a0); Negate the X velocity,
+	asr.w	#1,x_vel(a0); and half it! 
 SnolfBounceHorizEnd:
     rts
